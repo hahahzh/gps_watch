@@ -1,0 +1,212 @@
+1 升级
+http://127.0.0.1:9000/c/update?version=1.1&p_id=2&m_id=1
+(必须)vsrsion:版本号
+m_id:手机操作系统ID  1 Android  2 IOS
+m_type:手机操作系统  Android IOS WP *传递次参数必须和服务器设置的一样 例 m_type=Android 则服务器端存储的一定是Android
+
+{"state":"1","results":{"url":"http://qweqw.com","version":"1.0","m_type":"Android","update":"1 Andorid","apk":"/c/download?id=4&fileID=apk&entity=models.ClientVersion"}}
+
+
+2 注册
+http://127.0.0.1:9000/c/reg?z=MjN8MTIzNDV8MTIsMTQsODcsamosZmZ8MTIzNDU2fDEyMzQ1NnwxfDEzODM4Mzg5NDM2fDEyNDgzM3wxMjM0NTZ8MzIx
+(必须)z
+
+23|   12345|12,14,87,jj,ff|123456|123456|1                          |13838389436|1248  |123456|321
+随机 渠道号   MAC           IMEI   IMSI   操作系统 1IOS 2android 3WP   手机号     验证码   密码  随即
+
+{"state":"1","results":{"uid":4,"phone":"13838389446","session":"f5f997a0-621f-4af2-8d91-47cb305b5d99"}}
+
+
+3 登陆
+http://127.0.0.1:9000/c/login?phone=13838389436&pwd=123456&os=1&serialNumber=5434rfg5454&ip=10.221.2.0&imei=423423423&mac=22,55,fd,3&imsi=8218490230423
+(必须)phone：手机号 
+(必须)pwd：密码 
+(必须)os：操作系统 1 Android 2 IOS
+serialNumber：IPhone serial（推送用）安卓可省略
+ip
+imei
+mac
+imsi
+
+{"state":"1","results":{"uid":1,"phone":"13838389436","session":"c7901d79-9cb4-4b31-8f86-5607dee97036"}}
+
+
+4 退出
+http://127.0.0.1:9000/c/logout?z=c7901d79-9cb4-4b31-8f86-5607dee97036
+(必须)z
+
+{"state":"1","results":{}}
+
+
+5 下载
+http://127.0.0.1:9000/c/download?id=3&fileID=icon&entity=models.New&z=af017cae-d043-4cd7-8dea-a38315bc44a4
+此接口所有数据由服务器提供，客户端可以不关心
+
+
+6 更新用户信息
+http://127.0.0.1:9000/c/updateCustomerInfo?os=1&nickname=%E6%98%B5%E7%A7%B0&pwd=654321&gender=1&email=haha@163.com&city=%E4%B8%8A%E6%B5%B7&birthday=1986-05-21&height=175&weight=75&step=100&z=c7901d79-9cb4-4b31-8f86-5607dee97036
+os：操作系统 1 Android 2 IOS
+nickname：昵称
+pwd：密码
+gender：性别
+email：Email
+city：城市
+birthday：生日
+height：身高
+weight：体重
+step：步长
+weixin：微信号
+portrait：头像
+(必须)z
+
+{"state":"1","results":{}}
+
+7 获取用户信息
+http://127.0.0.1:9000/c/getCustomerInfo?z=c7901d79-9cb4-4b31-8f86-5607dee97036
+(必须)z
+
+{"state":"1","results":{"phonenumber":"13838389436","nickname":"昵称","email":"haha@163.com","os":"1","gender":"1","city":"上海","height":"175","weight":"75","step":"100","birthday":"1986-05-21","portrait":"/public/images/girl.jpg"}}
+
+
+10 忘记密码时获取密码
+http://127.0.0.1:9000/c/resetpassword?m=13838389436
+(必须)m:手机 邮箱 微信号
+{"state":"1","results":{}}
+
+
+12 请求参数错误或服务器没有数据时
+state：0
+msg：错误信息
+
+{"state":"0","msg":"重置密码邮件发送失败,请检查您的用户名."}
+
+
+13 修改密码
+http://127.0.0.1:9000/c/changePassword?oldPassword=321&newPassword=098765&z=d3598880-6b2c-40be-9bc6-174c0a199527
+(必须)oldPassword:旧密码
+(必须)newPassword:新密码
+(必须)z
+
+
+14 app收取验证码
+http://127.0.0.1:9000/c/verificationCode?m_number=150099878767
+
+返回
+{"state":"1","results":{"code":1234}}
+
+
+15 绑定手表
+http://127.0.0.1:9000/c/bindingWatch?sn=3212332&m_number=150099878767&w_number=150099878763
+(必须)sn:产品标识号
+(必须)m_number:app sim卡电话号码
+(必须)w_number:watch sim卡电话号码
+
+a 手表被app绑定后才能定位手表位置
+b 等待手表确认后，可以查看手表位置
+
+返回
+{"state":"1","results":{}}
+
+服务器再接到app绑定请求后会向手表发送确认短信
+
+
+16 手表确认(手表接口)
+http://127.0.0.1:9000/c/watchConfirm?sn=3212332&m_number=150099878767&w_number=150099878763
+
+
+返回 0 失败 1 成功
+
+
+17 设置手表信息(手表接口)
+http://127.0.0.1:9000/c/watchInfo?sn=3212332&w_number=150099878763&p_version=1&&version=1.1&w_type=M26&imsi=22334223&channel=AU
+(必须)sn:产品标识
+(必须)w_number:儿童手机号
+p_version:协议版本号
+version:儿童终端软件版本号
+w_type:儿童终端型号
+imsi:IMSI
+channel:儿童终端型号生产厂家
+
+
+18 解绑手表
+http://127.0.0.1:9000/c/unbindingWatch?sn=3212332&rId=&m_number=150099878767
+(必须)sn:产品标识号
+m_number:sim卡电话号码
+
+手表解除绑定后不能定位
+
+返回
+{"state":"1","results":{}}
+
+19 设置手表信息和亲情号码
+http://127.0.0.1:9000/c/watchInfo?rId=1&nickname=%E6%B5%8B%E8%AF%95&guardian_number1=1231234432&guardian_number2=1231234432&guardian_number3=1231234432&guardian_number4=1231234432&z=6335f91d-372e-4c19-9f5f-a9ec022fe513
+(必须)rId:已绑定产品ID
+nickname:产品昵称
+guardian_number1=监护人电话号码1
+guardian_number2=监护人电话号码2
+guardian_number3=监护人电话号码3
+guardian_number4=监护人电话号码4
+(必须)z
+
+返回
+{"state":"1","results":{}}
+
+
+20 APP获得手表信息
+http://127.0.0.1:9000/c/watchList?z=6335f91d-372e-4c19-9f5f-a9ec022fe513
+获得该手机绑定的所有手表信息
+
+返回
+{"state":"1","results":{"count":3,"list":[{"rId":1,"sn":312321321,"m_number":15000001111,"confirmed":1,"guardian_number1":15000002222,"guardian_number2":15000002222,"guardian_number3":15000002223,"guardian_number4":15000002224,"nickname":"军伟","p_name":"M26","bindDate":"2014-11-03 22:00:00","electronicFence_lat":,"1232.11","electronicFence_lon":,"12432.11","electronicFence_radius",100,"electronicFence_datetime","2014-11-03 22:00:00","electronicFence_status",0},{},{}]}
+
+count:绑定手表个数
+rId:手表ID
+sn:产品识别号
+m_number:手表电话号
+confirmed:是否被激活
+guardian_number1-4:亲情号码1-4
+nickname:昵称
+p_name:手表型号
+bindDate:绑定日期
+electronicFence_lat:电子围栏纬度
+electronicFence_lon:电子围栏经度
+electronicFence_radius:电子围栏半径
+electronicFence_datetime:电子围栏设置日期
+electronicFence_status:电子围栏是否被开启 0:关闭 1:开启
+
+
+21 手表发送GPS信息(手表接口)
+http://127.0.0.1:9000/c/sendGPS?data=MjN8MTU3NDM4NXwyMDE0MTAwMTEwMTAxMHwxMjM0LjUyMjZ8MXwxMjM0LjUyMjZ8MXwxMDB8MTMyfDE2fDQ2MHwxfDg5fDIyMDZ8ODg=&rId=20
+
+原始格式
+23|1574385|20141001101010|1234.5226|1|1234.5226|1|100|132|16|460|1|89|2206|AC|1|88
+转为Base64
+MjN8MTU3NDM4NXwyMDE0MTAwMTEwMTAxMHwxMjM0LjUyMjZ8MXwxMjM0LjUyMjZ8MXwxMDB8MTMyfDE2fDQ2MHwxfDg5fDIyMDZ8QUN8MXw4OA==
+
+23      |1574385       |28            |20141001101010           |1234.5226          |1            |1234.5226            |1             |100                 |132                                     |16    |460|1  |89     |2206|AC     |1 |88
+二位随机 sn(产品识别号) rt(产品型号)   datetime(yyyyMMddHHmmss)  latitude(ddmm.mmmm) latitudeFlag  longitude(ddmm.mmmm)  longitudeFlag  speed(0.0 至 1851.8) direction(相对位移方向，000.0至359.9度)  status mcc mnc cellid  lac  signal1 ta 随即
+
+data:GPS数据
+rId:从服务器得到的手表id
+
+
+22 APP获得GPS数据(未完成)
+http://127.0.0.1:9000/c/searchLocation?rId=1&num=55&z=6335f91d-372e-4c19-9f5f-a9ec022fe513
+
+(必须)rId:手表ID
+num:从服务器获得多少条数据，如果不传默认获得1条
+
+{"state":"1","results":{}}
+
+
+23 APP设置电子围栏(完成)
+http://127.0.0.1:9000/c/electronicFence?rId=1&on=1&lat=1214.5822&long=12454.4544&radius=100&z=6335f91d-372e-4c19-9f5f-a9ec022fe513
+
+(必须)rId:手表ID
+on: 0 关闭 1 开启
+lat:纬度
+lon:经度
+radius:半径
+
+返回
+{"state":"1","results":{}}

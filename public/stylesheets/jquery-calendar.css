@@ -1,0 +1,123 @@
+#calendar_div {
+	BORDER-RIGHT: #777 1px solid; PADDING-RIGHT: 0px; BORDER-TOP: #777 1px solid; DISPLAY: none; PADDING-LEFT: 0px; FONT-SIZE: 14px; Z-INDEX: 10; PADDING-BOTTOM: 0px; MARGIN: 0px; BORDER-LEFT: #777 1px solid; PADDING-TOP: 0px; BORDER-BOTTOM: #777 1px solid; FONT-FAMILY: Arial, Helvetica, sans-serif
+}
+#calendar_div A {
+	CURSOR: hand
+}
+BUTTON.calendar_trigger {
+	WIDTH: 25px
+}
+IMG.calendar_trigger {
+	MARGIN: 2px; VERTICAL-ALIGN: middle
+}
+#calendar_control {
+	CLEAR: both; FLOAT: left; WIDTH: 185px; COLOR: #fff
+}
+#calendar_links {
+	CLEAR: both; FLOAT: left; WIDTH: 185px; COLOR: #fff
+}
+#calendar_header {
+	CLEAR: both; FLOAT: left; WIDTH: 185px; COLOR: #fff
+}
+#calendar {
+	CLEAR: both; FLOAT: left; WIDTH: 185px; COLOR: #fff
+}
+#calendar_time {
+	CLEAR: both; FLOAT: left; WIDTH: 185px; COLOR: #fff
+}
+#calendar_control {
+	BACKGROUND: #400
+}
+#calendar_links {
+	BACKGROUND: #000
+}
+#calendar_control A {
+	PADDING-RIGHT: 5px; PADDING-LEFT: 5px; FONT-WEIGHT: bold; FONT-SIZE: 80%; PADDING-BOTTOM: 2px; COLOR: #eee; PADDING-TOP: 2px; LETTER-SPACING: 1px
+}
+#calendar_links A {
+	PADDING-RIGHT: 5px; PADDING-LEFT: 5px; FONT-WEIGHT: bold; FONT-SIZE: 80%; PADDING-BOTTOM: 2px; COLOR: #eee; PADDING-TOP: 2px; LETTER-SPACING: 1px
+}
+#calendar_control A:hover {
+	BACKGROUND: #fdd; COLOR: #333
+}
+#calendar_links A:hover {
+	BACKGROUND: #ddd; COLOR: #333
+}
+.calendar_titleRow A:hover {
+	BACKGROUND: #ddd; COLOR: #333
+}
+#calendar_clear {
+	FLOAT: left
+}
+#calendar_prev {
+	FLOAT: left
+}
+#calendar_current {
+	FLOAT: left; WIDTH: 35%; TEXT-ALIGN: center
+}
+#calendar_close {
+	FLOAT: right
+}
+#calendar_next {
+	FLOAT: right
+}
+#calendar_header {
+	FONT-WEIGHT: bold; BACKGROUND: #333; TEXT-ALIGN: center
+}
+#calendar_time {
+	FONT-WEIGHT: bold; BACKGROUND: #333; TEXT-ALIGN: center
+}
+#calendar_header SELECT {
+	BORDER-TOP-WIDTH: 0px; FONT-WEIGHT: bold; BORDER-LEFT-WIDTH: 0px; BACKGROUND: #333; BORDER-BOTTOM-WIDTH: 0px; COLOR: #fff; BORDER-RIGHT-WIDTH: 0px
+}
+#calendar_time SELECT {
+	BORDER-TOP-WIDTH: 0px; FONT-WEIGHT: bold; BORDER-LEFT-WIDTH: 0px; BACKGROUND: #333; BORDER-BOTTOM-WIDTH: 0px; COLOR: #fff; BORDER-RIGHT-WIDTH: 0px
+}
+#calendar {
+	FONT-SIZE: 100%; BACKGROUND: #ccc; TEXT-ALIGN: center
+}
+#calendar A {
+	DISPLAY: block; WIDTH: 100%
+}
+#calendar A:hover {
+	COLOR: #eee
+}
+#calendar .calendar_titleRow {
+	BACKGROUND: #777
+}
+#calendar .calendar_titleRow A {
+	COLOR: #eee
+}
+#calendar .calendar_titleRow A:hover {
+	COLOR: #000
+}
+#calendar .calendar_daysRow {
+	BACKGROUND: #eee; COLOR: #666
+}
+#calendar .calendar_daysCell {
+	BORDER-RIGHT: #ddd 1px solid; BORDER-TOP: #ddd 1px solid; BORDER-LEFT: #ddd 1px solid; BORDER-BOTTOM: #ddd 1px solid
+}
+#calendar .calendar_daysCell A {
+	WIDTH: 100%; COLOR: #000
+}
+#calendar .calendar_daysCell A:hover {
+	BACKGROUND: none transparent scroll repeat 0% 0%
+}
+#calendar .calendar_weekEndCell {
+	BACKGROUND: #ddd
+}
+#calendar .calendar_daysCellOver {
+	BORDER-RIGHT: #777 1px solid; BORDER-TOP: #777 1px solid; BACKGROUND: #fff; BORDER-LEFT: #777 1px solid; BORDER-BOTTOM: #777 1px solid
+}
+#calendar .calendar_unselectable {
+	COLOR: #888
+}
+#calendar_today {
+	BACKGROUND: #fcc
+}
+#calendar_currentDay {
+	BACKGROUND: #999
+}
+#calendar_cover {
+	DISPLAY: block; Z-INDEX: -1; FILTER: mask(); LEFT: -1px; WIDTH: 300px; POSITION: absolute; TOP: -1px; HEIGHT: 300px
+}

@@ -1,0 +1,34 @@
+mysql
+mysqld -nt --skip-grant-tables
+CREATE DATABASE IF NOT EXISTS Rwatch default charset utf8 COLLATE utf8_general_ci;
+
+grant all privileges on *.* to rwatch@'%' identified by 'rwatch';
+flush privileges;
+
+
+
+
+/usr/bin/mysql -uroot -p -S/var/lib/mysql/mysql.sock
+
+export JAVA_HOME=/usr/java/jdk1.7.0_45
+export PATH=$PATH:$JAVA_HOME/bin
+export CLASSPATH=.:$JAVA_HOME/lib
+
+[root@mgm jdk]# sudo chmod 755 java_ee_sdk-6u1-jdk-linux.sh
+[root@mgm jdk]# sudo ./java_ee_sdk-6u1-jdk-linux.sh
+Could not locate a suitable jar utility.
+Please ensure that you have Java 6 or newer installed on your system
+and accessible in your PATH or by setting JAVA_HOME
+
+
+export DISPLAY=:0.0
+echo $DISPLAY
+set env DISPLAY 127.0.0.1:0.0
+
+
+mysqldump -uroot -p Rwatch > /tmp/RwatchAllData.sql
+aliyun
+1006168123@qq.com
+oviphoneyuwenjie
+114.215.180.64，用户名：root，密码：86f24d48
+RDS mysqlforrwatch.mysql.rds.aliyuncs.com 用户名oviphonerwatch 密码oviphone2014

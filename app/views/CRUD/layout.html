@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+
+<html lang="${lang}">
+    <head>
+        <title>#{get 'title' /}</title>
+        <meta charset="${_response_encoding}" />
+        <link rel="stylesheet" media="screen" href="@{'/public/stylesheets/crud.css'}" />
+        <link rel="stylesheet" type="text/css" media="screen" href="@{'/public/stylesheets/jquery-calendar.css'}" />
+        <link rel="stylesheet" type="text/css" media="screen" href="@{'/public/stylesheets/crud.css'}" />
+        #{script 'jquery-1.11.0.min.js' /}
+     #{script 'jquery-calendar.js' /}
+    #{script 'json2.js' /}
+            <script type="text/javascript">
+		//<![CDATA[
+			$(document).ready(function (){ 
+				$("#startDate").calendar();
+				$("#endDate").calendar();
+			});
+		//]]>
+		</script>
+    </head>
+    <body id="crud">
+
+        <div id="crudHeader">
+            <h1><a href="@{CRUD.index()}">&{'crud.title'}</a></h1>
+        </div>
+		<div align="right">
+		你好 &nbsp;&nbsp;${session.admin_name}
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		    <a href="@{Secure.logout()}">退出</a>
+		</div>
+#{if request.actionMethod != 'index'}
+            <div id="crudBreadcrumb">
+                #{crud.navigation /}
+            </div>
+#{/if}
+
+#{if flash.success}
+            <div class="crudFlash flashSuccess">
+                ${flash.success}
+            </div>
+#{/if}
+#{if flash.error || error}
+            <div class="crudFlash flashError">
+                ${error ?: flash.error}
+            </div>
+#{/if}
+
+        <div id="crudContent">
+#{doLayout /}
+        </div>
+
+        <div id="crudFooter">
+            <p>Copyright &copy; 2014 RWatch. All Rights Reserved. </p>
+        </div>
+
+    </body>
+</html>

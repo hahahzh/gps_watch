@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>gps_watch</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>org.eclipse.jdt.core.javabuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>org.eclipse.jdt.core.javanature</nature>
+		<nature>org.playframework.playclipse.playNature</nature>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>conf/crud</name>
+			<type>2</type>
+			<location>D:/play-1.2.5.3/gps_watch/crud/conf</location>
+		</link>
+		<link>
+			<name>conf/secure</name>
+			<type>2</type>
+			<location>D:/play-1.2.5.3/gps_watch/secure/conf</location>
+		</link>
+		<link>
+			<name>public/crud</name>
+			<type>2</type>
+			<location>D:/play-1.2.5.3/modules/crud/public</location>
+		</link>
+		<link>
+			<name>public/secure</name>
+			<type>2</type>
+			<location>D:/play-1.2.5.3/modules/secure/public</location>
+		</link>
+	</linkedResources>
+</projectDescription>

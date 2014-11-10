@@ -1,0 +1,16 @@
+#{form action:@list().remove('page'), method:'GET'}
+<div id="" class="crudField crud_doubleDate">
+	时间：
+	<input id="startDate" readonly="readonly" type="text" name="startDate" value="${_caller.startDate}" size="20" style="width:100px;"/>
+	至
+	<input id="endDate" readonly="readonly" type="text" name="endDate" value="${_caller.endDate}" size="20" style="width:100px;"/>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;关键字：
+    #{if _fields}
+        <input type="hidden" name="searchFields" value="${_fields.toString().substring(1, _fields.toString().length()-1).replace(',', '')}" />
+    #{/if}
+    <input type="text" name="search" value="${params.search?.escape()?.raw()}" style="width:500px;"/> <input type="submit" value="&{'crud.search'}" />
+    #{if _caller.params.search}
+        (<a href="@{list()}">&{'crud.list.totalSize', _caller.totalCount}</a>)
+    #{/if}
+    </div>
+#{/form}

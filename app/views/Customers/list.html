@@ -1,0 +1,33 @@
+#{extends 'CRUD/layout.html' /}
+#{set title:messages.get('customers.list.title', type.name) /}
+
+<div id="crudList" class="${type.name}">
+
+    <h2 id="crudListTitle">&{'crud.list.title', type.name}</h2>
+
+    <div id="">
+        #{customer.search /}
+    </div>
+
+    <div id="crudListTable">
+        #{customer.table fields:['m_number', 'nickname', 'gender', 'email', 'city', 'production', 'os', 'imei', 'imsi', 'mac', 'birthday'] /}
+    </div>
+
+    <div id="crudListPagination">
+        #{crud.pagination /}
+    </div>
+
+
+    <p>
+		<input type="button" id="ttff" name="tt" onclick="exportToExcel();" value="导出数据"/>
+	</p>
+</div>
+<script type="text/javascript">
+function exportToExcel(){
+	var search = document.getElementsByName("search")[0].value;
+	var startDate = document.getElementById("startDate").value;
+	var endDate = document.getElementById("endDate").value;
+	alert(startDate);
+	window.location.href = "/customers/exportAllData?search="+search+"&startDate="+startDate+"&endDate="+endDate;	
+}
+</script>

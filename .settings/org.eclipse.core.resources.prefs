@@ -1,0 +1,10 @@
+eclipse.preferences.version=1
+encoding//app/views/CRUD/layout.html=UTF-8
+encoding//app/views/Customers/list.html=UTF-8
+encoding//app/views/SMSLogs/blank.html=UTF-8
+encoding//app/views/Sessions/list.html=UTF-8
+encoding//app/views/main.html=UTF-8
+encoding//app/views/tags/customer/search.html=UTF-8
+encoding//app/views/tags/customer/table.html=UTF-8
+encoding//public/stylesheets/crud.css=UTF-8
+encoding/<project>=UTF-8

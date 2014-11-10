@@ -1,0 +1,41 @@
+#{extends 'CRUD/layout.html' /}
+#{set title:messages.get('customers.list.title', type.name) /}
+
+<div id="crudList" class="${type.name}">
+
+    <h2 id="crudListTitle">&{'crud.list.title', type.name}</h2>
+
+    <div id="">
+        #{crud.search /}
+    </div>
+
+    <div id="crudListTable">
+	<table>
+    	<thead>
+        <tr>
+            <th>&{'loginUpdatetime'}</th>
+            <th>&{'m_number'}</th>
+     		<th>&{'email'}</th>
+            <th>&{'imei'}</th>
+            <th>&{'mac'}</th>
+            <th>&{'city'}</th>
+        </tr>
+    	</thead>
+		#{list items:objects, as:'c'}
+		<tr>
+		<td>${c.loginUpdatetime}</td>
+		<td>${c.c.m_number}</td>
+		<td>${c.c.email}</td>
+		<td>${c.c.imei}</td>
+		<td>${c.c.mac}</td>
+		<td>${c.c.city}</td>
+		</tr>
+		#{/list}
+	</table>
+    </div>
+
+    <div id="crudListPagination">
+        #{crud.pagination /}
+    </div>
+
+</div>

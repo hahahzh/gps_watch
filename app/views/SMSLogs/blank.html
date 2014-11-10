@@ -1,0 +1,35 @@
+#{extends 'CRUD/layout.html' /}
+#{set title:messages.get('crud.blank.title', type.modelName) /}
+
+<div id="crudBlank" class="${type.name}">
+
+    <h2 id="crudBlankTitle">&{'crud.blank.title', type.modelName}</h2>
+
+    <div class="objectForm">
+    #{form action:@create(), enctype:'multipart/form-data'}
+        <div class="crudField crud_text">
+	        <label>短信内容</label>
+	        <textarea id="" cols="50" rows="5" name="content"></textarea> 
+	        <span class="crudHelp"><font color=red>必填</font></span>
+        </div>
+        <div class="crudField crud_text">
+	        <label>请选择用户</label>
+	        <select id="selMobile" name="selMobile" multiple="yes">
+	           #{list items:controllers.Customers.getCustomers(), as:'c'}
+	
+		        		<option value="${c.m_number}" selected="true">${c.nickname}&nbsp;&nbsp;${c.m_number}</option>
+		        #{/list}
+	        </select>
+	        <span class="crudHelp"><font color=red>必填</font></span>
+        </div>
+        <div class="crudField crud_text">
+	        <label>手动添加号码(请以逗号分隔)</label>
+	        <textarea id="" cols="50" rows="5" name="wMobile"></textarea> 
+        </div>
+        <p class="crudButtons">
+            <input type="submit" name="_save" value="&{'crud.save', type.modelName}" />
+        </p>
+    #{/form}
+    </div>
+
+</div>
