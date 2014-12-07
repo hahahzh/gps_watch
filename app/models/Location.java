@@ -55,7 +55,7 @@ public class Location extends Model{
 	/**
 	 * 该位置信息的时间，最大长度16（YYYYMMDDTHHMMSSZ），标准时间，例如20110712T054025Z
 	 */
-	public Date dateTime;
+	public String dateTime;
 	
 	/**
 	 * 服务器收到坐标的时间
@@ -65,10 +65,7 @@ public class Location extends Model{
 	 * 状态码
 	 */
 	public String status;
-	/**
-	 * 是否被家长机读取过
-	 */
-	public boolean readed;
+
 	/**
 	 * 国家码
 	 */
@@ -103,6 +100,8 @@ public class Location extends Model{
      * 0 西经
 	 */
 	public int longitudeFlag;
+	
+	public String signal1;
 
 	@Override
 	public String toString(){

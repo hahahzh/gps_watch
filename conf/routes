@@ -4,20 +4,25 @@
 
 # Home page
 GET     /                                       Application.index
-#*       /c/reg									Master.register
-#*       /c/login								Master.login
-#*       /c/logout								Master.logout
-#*       /c/updateCustomerInfo					Master.updateMemberInfo
-#*       /c/getCustomerInfo						Master.getMemberInfo
-#*       /c/getRecords							Master.getMemberRecords
-#*       /c/setRecord							Master.setMemberRecord
-#*       /c/download								Master.download
-#*       /c/update								Master.update
-#*       /c/resetpassword						Master.sendResetPasswordMail
-#*       /c/getADs								Master.getPushInfos
-#*       /c/setUserWatch							Master.setRWatch
-#*       /c/changePassword						Master.changePassword
-#*       /c/getUserWatch							Master.getRWatchList
+*       /c/verificationCode						Master.checkDigit
+*       /c/reg									Master.register
+*       /c/login								Master.login
+*       /c/logout								Master.logout
+*       /c/updateCustomerInfo					Master.updateMemberInfo
+*       /c/getCustomerInfo						Master.getMemberInfo
+*       /c/download								Master.download
+*       /c/update								Master.update
+*       /c/resetpassword						Master.sendResetPasswordMail
+*       /c/setUserWatch							Master.setRWatch
+*       /c/changePassword						Master.changePassword
+*       /c/watchList							Master.getRWatchList
+*       /c/electronicFence						Master.setElectronicFence
+*       /c/bindingWatch							Master.addRWatch
+*       /c/watchInfo							Master.setRWatch
+*       /c/unbindingWatch						Master.delRWatch
+*       /c/bindingWatchforWeb					Master.webBindingWatch
+*       /c/sendGPS								Master.receiver
+*       /c/searchLocation						Master.getLocation
 
 # Ignore favicon requests
 GET     /favicon.ico                            404
@@ -27,6 +32,7 @@ GET     /public/                                staticDir:public
 GET     /attachments/                      		staticDir:data/attachments
 GET     /android/                      			staticDir:data/android
 GET     /ios/                      				staticDir:data/ios
+GET     /watch/                      				staticDir:data/watch
 
 # Catch all
 *       /{controller}/{action}                  {controller}.{action}

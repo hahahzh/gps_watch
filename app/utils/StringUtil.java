@@ -6,7 +6,7 @@ package utils;
 
 /**
  * 字符串工具类，存放通用的字符串操作
- * @author kortide
+ * @author hanzhao
  */
 public abstract class StringUtil {
 
@@ -99,4 +99,20 @@ public abstract class StringUtil {
     	}
     	return false;
     }
+    
+    public static double distanceBetween(double latitude1, double longitude1,double latitude2, double longitude2) {
+		double distance = 0.0;
+		double deltaLat = Math.toRadians(latitude2 - latitude1);
+		double deltaLon = Math.toRadians(longitude2 - longitude1);
+		latitude1 = Math.toRadians(latitude1);
+		latitude2 = Math.toRadians(latitude2);
+		longitude1 = Math.toRadians(longitude1);
+		longitude2 = Math.toRadians(longitude2);
+
+		double earthRadius = 6371 * 1000;
+		double a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) + Math.cos(latitude1) * Math.cos(latitude2) * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+		double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+		distance = earthRadius * c;
+		return distance;
+	}
 }

@@ -146,11 +146,12 @@ public abstract class Coder {
     	String a = "5TMDAwMDZ8MTAwMDF8aW1laXxpbXNpdGVzdHxHN3w0ODB4ODAwfGFuZHJvaWR8MXwxLjF8MnwwVy8dN";
     	String b;
     	String c = "23|12345|1.0|12,14,87,jj,ff|1|土豪金5S|15000993473|123786|haha|123456|321";
+    	String d = "23|3212332|M28|20141001101010|116.404|1|39.915|1|100|132|16|460|1|89|2206|AC|1|88,23|3212332|M28|20141001101010|128.404|1|40.915|1|100|132|16|460|1|89|2206|AC|1|88,23|3212332|M28|20141001101010|119.404|1|39.915|1|100|132|16|460|1|89|2206|AC|1|88";
 		try {
-			String[] ss = c.split("\\|");
-			System.out.println(ss[3]);
-	String d = Coder.encryptBASE64(c.getBytes());
-	System.out.println(d);
+//			String[] ss = c.split("\\|");
+//			System.out.println(ss[3]);
+	String dd = Coder.encryptBASE64(d.getBytes());
+	System.out.println(dd);
 	
 	String e = "MTJ8MjE0fHNmc2R8Z2ZkZ3xmZC0tLS0tLS0tLS0tLS0tLS0tPT09PT09PT09PWdnc2YzMzN8MjIy";
 	byte[] f= Coder.decryptBASE64(e);
@@ -159,7 +160,7 @@ public abstract class Coder {
 	String[] tt = strRead1.split("|");
 	System.out.println(tt[8]);
 	
-	String aa = Coder.encryptBASE64("23|1574385|20141001101010|1234.5226|1|1234.5226|1|100|132|16|460|1|89|2206|AC|1|88".getBytes());
+	String aa = Coder.encryptBASE64("23|12345|12,14,87,jj,ff|123456|123456|1|15000993473|80655|123456|321".getBytes());
 	System.out.println("aa:"+aa);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

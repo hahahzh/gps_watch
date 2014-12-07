@@ -1,6 +1,8 @@
 package controllers;
 
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
@@ -8,19 +10,21 @@ import java.util.UUID;
 
 import javax.mail.internet.InternetAddress;
 
+import models.BSLocation;
 import models.CheckDigit;
 import models.ClientVersion;
 import models.Customer;
+import models.ElectronicFence;
 import models.Location;
 import models.Log;
 import models.Production;
 import models.RWatch;
+import models.SN;
 import models.Session;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import play.Play;
-import play.cache.Cache;
 import play.data.validation.Required;
 import play.data.validation.Validation;
 import play.db.Model;
@@ -38,16 +42,18 @@ import utils.StringUtil;
 import controllers.CRUD.ObjectType;
 
 /**
- * ......
+ * 儿童手表(定位器)主接口
  * 
  * @author hanzhao
  * 
  */
-//@With(Compress.class)
 public class Master extends Controller {
+	
+	public static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-	public static final String SUCCESS = "1";
-	public static final String FAIL = "0";
+	// 定义返回Code
+	public static final String SUCCESS = "1";//成功
+	public static final String FAIL = "0"; // 失败
 	
 	public static final int ONE = 1;
 	public static final int TWO = 2;
@@ -55,40 +61,38 @@ public class Master extends Controller {
 	public static final int FOUR = 4;
 	public static final int FIVE = 5;
 	
-	public static final int upgrade_flag = 1;// .......
-	public static final int error_parameter_required = 1;// .......
-	public static final int error_username_already_used = 2;// ........
-	public static final int error_username_not_exist = 3;// .......
-	public static final int error_userid_not_exist = 4;// ..id....
-	public static final int error_not_owner = 5;// &{%s} .........
-	public static final int error_unknown = 6;// ....,......
-	public static final int error_locator_not_exist = 7;// .......
-	public static final int error_both_email_phonenumber_empty = 8;// ..............
-	public static final int error_username_or_password_not_match = 9;// ..........
-	public static final int error_session_expired = 10;// .....,......
-	public static final int error_mail_resetpassword = 11;// ..........,.........
-															// &{%s} .
-	public static final int error_locator_bind_full = 12;// ... &{%s} ..........
-	public static final int error_locator_already_bind = 13;// ... &{%s} .......
-	public static final int error_unknown_waring_format = 14;// .............
-	public static final int error_unknown_command = 15;// ..... &{%s}.
-	public static final int error_locator_not_confirmed = 16;// ..........,...........
-	public static final int error_dateformat = 17;// .......
-	public static final int error_locator_max = 18;// ......
-	public static final int error_download = 19;// ....
-	public static final int error_send_mail_fail = 20;
-	public static final int error_already_exists = 21;// ........
-	/**
-	 * ...............
-	 */
+	public static final int upgrade_flag = 1;// 不用升级
+	public static final int error_parameter_required = 1;// 缺少必须参数
+	public static final int error_username_already_used = 2;// 已存在的用户名
+	public static final int error_username_not_exist = 3;// 不存在用户名
+	public static final int error_userid_not_exist = 4;// 用户ID不存在
+	public static final int error_not_owner = 5;// 不是定位器的拥有者
+	public static final int error_unknown = 6;// 未知错误
+	public static final int error_rwatch_not_exist = 7;// 定位器不存在
+	public static final int error_both_email_phonenumber_empty = 8;// 电话号码或Email为空
+	public static final int error_username_or_password_not_match = 9;// 用户名或密码不匹配
+	public static final int error_session_expired = 10;// 会话过期
+	public static final int error_mail_resetpassword = 11;// 密码重置错误
+	public static final int error_rwatch_bind_full = 12;// 不能绑定过多定位器
+	public static final int error_rwatch_already_bind = 13;// 定位器已被绑定
+	public static final int error_unknown_waring_format = 14;// 未知警报
+	public static final int error_unknown_command = 15;// 未知命令
+	public static final int error_rwatch_not_confirmed = 16;// 定位器未确认
+	public static final int error_dateformat = 17;// 日期格式错误
+	public static final int error_rwatch_max = 18;// 拥有定位器过多
+	public static final int error_download = 19;// 下载错误
+	public static final int error_send_mail_fail = 20;// 发送Email错误
+	public static final int error_already_exists = 21;// 已存在
+
+	// 存储Session副本
 	private static ThreadLocal<Session> sessionCache = new ThreadLocal<Session>();
 	
 	/**
-	 * ....
+	 * 校验Session是否过期
 	 * 
 	 * @param sessionID
 	 */
-	@Before(unless={"checkDigit", "register", "login", "sendResetPasswordMail", "update", "download"},priority=1)
+	@Before(unless={"checkDigit", "register", "login", "sendResetPasswordMail", "update", "download", "addRWatch", "webBindingWatch", "setRWatch", "receiver"},priority=1)
 	public static void validateSessionID(@Required String z) {
 		
 		Session s = Session.find("bySessionID",z).first();
@@ -98,38 +102,48 @@ public class Master extends Controller {
 		}
 	}
 	
-	public static void checkDigit(@Required String m) {
+	/**
+	 * 发送验证码到手机
+	 * 
+	 * @param m_number
+	 */
+	public static void checkDigit(@Required String m_number) {
 		// ....
 		if (Validation.hasErrors()) {
 			renderFail("error_parameter_required");
 		}
-		if(!Validation.phone(SUCCESS, m).ok){
+		if(!Validation.phone(SUCCESS, m_number).ok){
 			renderFail("error_parameter_required");
 		}
 		Random r = new Random();
 		int n = Math.abs(r.nextInt())/10000;
 		
 		try {
-			boolean s = SendSMS.sendMsg(new String[]{m}, "您的验证码是：" + n + "。请不要把验证码泄露给其他人。");
+			boolean s = SendSMS.sendMsg(new String[]{m_number}, "您的验证码是：" + n + "。请不要把验证码泄露给其他人。");
 			if(!s){
-				play.Logger.error("checkDigit: result="+s+" PNumber="+m+" digit="+n);
+				play.Logger.error("checkDigit: result="+s+" PNumber="+m_number+" digit="+n);
 				renderText("验证码获取失败请稍后再试");
 			}
 			
-			CheckDigit cd = new CheckDigit();
+			CheckDigit cd = CheckDigit.find("m=?", m_number).first();
+			if(cd == null)cd = new CheckDigit();
 			cd.d = n;
 			cd.updatetime = new Date().getTime();
-			cd.m = m;
+			cd.m = m_number;
 			cd._save();
 		} catch (Exception e) {
-			play.Logger.error("checkDigit: PNumber="+m+" digit="+n);
+			play.Logger.error("checkDigit: PNumber="+m_number+" digit="+n);
 			play.Logger.error(e.getMessage());
 			renderText("系统繁忙发送失败请再次获取");
 		}
 		renderText("OK");
 	}
 	
-	// 注册
+	/**
+	 * 用户注册
+	 * 
+	 * @param z
+	 */
 	public static void register(@Required String z) {
 		if (Validation.hasErrors()) {
 			renderFail("error_parameter_required");
@@ -138,7 +152,7 @@ public class Master extends Controller {
 		try {			
 			byte[] b = Coder.decryptBASE64(z);
 			String src = new String(b);
-			String[] arr = z.split("\\|");
+			String[] arr = src.split("\\|");
 		
 			int i = Integer.parseInt(arr[7]);
 			CheckDigit c = CheckDigit.find("d=?", i).first();
@@ -152,9 +166,8 @@ public class Master extends Controller {
 				c.delete();
 				renderFail("error_checkdigit");
 			}
-			c.delete();
 
-			Customer m = Customer.find("byM_number", arr[6]).first();
+			Customer m = Customer.find("byM_number", arr[6].trim()).first();
 			if(m != null){
 				play.Logger.info("register:error_username_already_used");
 				renderFail("error_username_already_used");
@@ -166,10 +179,12 @@ public class Master extends Controller {
 			m.imei = arr[3];
 			m.imsi = arr[4];
 			m.os = Integer.parseInt(arr[5]);
-			m.m_number = Integer.parseInt(arr[6]);
+			m.m_number = arr[6].trim();
 			m.pwd = arr[8];
 			m.updatetime = new Date();
 			m.save();
+			
+			c.delete();
 			
 			Session s = new Session();
 			s.c = m;
@@ -193,14 +208,16 @@ public class Master extends Controller {
 	}
 		
 	/**
-	 * Login
+	 * 登录
 	 * 
-	 * @param username
-	 * @param password
-	 * @param type
-	 *            .....,......,iphone.......push..
+	 * @param phone
+	 * @param pwd
+	 * @param os
 	 * @param serialNumber
-	 *            iphone.......,push..
+	 * @param ip
+	 * @param imei
+	 * @param mac
+	 * @param imsi
 	 */
 	public static void login(@Required String phone,
 			@Required String pwd, @Required Integer os,
@@ -262,11 +279,9 @@ public class Master extends Controller {
 	
 	
 	/**
-	 * ....
+	 * 登出
 	 * 
-	 * @param username
-	 * @param password
-	 * @param sessionID
+	 * @param z
 	 */
 	public static void logout(@Required String z) {
 		// ....
@@ -282,7 +297,12 @@ public class Master extends Controller {
 		renderSuccess(initResultJSON());
 	}
 
-
+	/**
+	 * 重置密码
+	 * 
+	 * @param m
+	 * @throws UnsupportedEncodingException
+	 */
 	@SuppressWarnings("deprecation")
 	public static void sendResetPasswordMail(@Required String m)
 			throws UnsupportedEncodingException {
@@ -320,8 +340,23 @@ public class Master extends Controller {
 		renderSuccess(initResultJSON());
 	}
 
-
-	//更新用户信息
+	/**
+	 * 更新用户信息
+	 * 
+	 * @param os
+	 * @param nickname
+	 * @param pwd
+	 * @param gender
+	 * @param email
+	 * @param city
+	 * @param birthday
+	 * @param height
+	 * @param weight
+	 * @param weixin
+	 * @param step
+	 * @param portrait
+	 * @param z
+	 */
 	public static void updateMemberInfo(Integer os, String nickname, String pwd, String gender, String email, 
 			String city, Date birthday, String height, String weight, String weixin, String step, Blob portrait, @Required String z) {
 
@@ -376,7 +411,11 @@ public class Master extends Controller {
 		renderSuccess(initResultJSON());
 	}
 
-	// 得到用户信息
+	/**
+	 * 获取用户信息
+	 * 
+	 * @param z
+	 */
 	public static void getMemberInfo(@Required String z) {
 		
 		if (Validation.hasErrors()) {
@@ -415,54 +454,76 @@ public class Master extends Controller {
 		renderSuccess(results);
 	}
 
-	public static void setRWatch(String imei, Long rId, String p_name, String nickname, String m_number, Integer guardian_number1, Integer guardian_number2, Integer guardian_number3, Integer guardian_number4, @Required String z) {
-		
-		if (Validation.hasErrors()) {
-			renderFail("error_parameter_required");
-		}
-		
-		Session s = sessionCache.get();
-		if(s == null){
-			renderFail("error_session_expired");
-		}
-		
+	/**
+	 * 设置儿童手表(定位器)信息
+	 * 
+	 * @param imei
+	 * @param channel
+	 * @param w_type
+	 * @param nickname
+	 * @param w_number
+	 * @param guardian_number1
+	 * @param sn
+	 * @param guardian_number2
+	 * @param guardian_number3
+	 * @param guardian_number4
+	 * @param rId
+	 * @param z
+	 */
+	public static void setRWatch(String imei, String channel, String w_type, 
+			String nickname, String w_number, String guardian_number1, String sn, String guardian_number2, 
+			String guardian_number3, String guardian_number4, Long rId, String z) {
 		RWatch r = null;
-		if(!StringUtil.isEmpty(imei)){
-			r = new RWatch();
-			r.imei = imei;
-		}else{
-			if(rId != null)	r = RWatch.findById(rId);
-			if(r == null)renderFail("error_rwatch_not_exist");
+		if(!StringUtil.isEmpty(sn)){
+			r = RWatch.find("bySerialNumber", sn).first();
+		}
+		if(rId != null){
+			r = RWatch.findById(rId);
+			Session s = Session.find("bySessionID",z).first();
+			if(s == null)renderFail("error_session_expired");
+		}
+		if(r == null){
+			renderFail("error_rwatch_not_exist");
 		}
 		
+		if(!StringUtil.isEmpty(imei)){
+			r.imei = imei;
+		}
+		if(!StringUtil.isEmpty(w_type)){
+			Production p = Production.find("byP_name", w_type).first();
+			if(p != null)r.production = p;
+		}
+		if(!StringUtil.isEmpty(channel)){
+			r.channel = channel;
+		}
 		if (nickname != null && !"".equals(nickname)){
 			r.nickname = nickname;
 		}
-		if (m_number != null && !"".equals(m_number)){
-			r.m_number = m_number;
+		if (!StringUtil.isEmpty(w_number)){
+			r.m_number = w_number;
 		}
-		if (guardian_number1 != null){
+		if (!StringUtil.isEmpty(guardian_number1)){
 			r.guardian_number1 = guardian_number1;
 		}
-		if (guardian_number2 != null){
-			r.guardian_number1 = guardian_number1;
+		if (!StringUtil.isEmpty(guardian_number2)){
+			r.guardian_number2 = guardian_number1;
 		}
-		if (guardian_number3 != null){
-			r.guardian_number1 = guardian_number1;
+		if (!StringUtil.isEmpty(guardian_number3)){
+			r.guardian_number3 = guardian_number1;
 		}
-		if (guardian_number4 != null){
-			r.guardian_number1 = guardian_number1;
+		if (!StringUtil.isEmpty(guardian_number4)){
+			r.guardian_number4 = guardian_number1;
 		}
-		if(p_name != null && !"".equals(p_name)){
-			r.production = Production.find("p_name=?",p_name).first();
-		}
-		r.c = s.c;
-		r.bindDate = new Date();
 		r._save();
 		JSONObject results = initResultJSON();
 		renderSuccess(results);
 	}
 	
+	/**
+	 * 获取当前用户绑定的所有儿童手表(定位器)
+	 * 
+	 * @param z
+	 */
 	public static void getRWatchList(@Required String z) {
 		
 		// 参数验证
@@ -476,14 +537,14 @@ public class Master extends Controller {
 		}
 		
 		Customer c = s.c;
-
-		List<RWatch> rwatchs = RWatch.find("byC", c).fetch();
+		List<RWatch> rwatchs = RWatch.find("c_id=? or guardian_number1=? or guardian_number2=? or guardian_number3=? or guardian_number4=?", c.id, c.m_number, c.m_number, c.m_number, c.m_number).fetch();
 		
 		JSONObject results = initResultJSON();
 		JSONArray datalist = initResultJSONArray();
 		if (!rwatchs.isEmpty()) {
 			for(RWatch r : rwatchs){
 				JSONObject data = initResultJSON();
+				data.put("rId", r.id);
 				data.put("imei", r.imei);
 				data.put("m_number", r.m_number);
 				data.put("nickname", r.nickname);
@@ -493,6 +554,15 @@ public class Master extends Controller {
 				data.put("guardian_number4", r.guardian_number4);
 				data.put("bindDate", DateUtil.reverseDate(r.bindDate,3));
 				data.put("production", r.production.p_name);
+				data.put("sn", r.serialNumber);
+				ElectronicFence ef = ElectronicFence.find("byRWatch", r).first();
+				if(ef != null){
+					data.put("electronicFence_lat", ef.lat);
+					data.put("electronicFence_lon", ef.lon);
+					data.put("electronicFence_radius", ef.radius);
+					data.put("electronicFence_datetime", DateUtil.reverseDate(ef.dateTime,3));
+					data.put("electronicFence_status", ef.on);
+				}
 				datalist.add(data);
 			}
 		}
@@ -500,7 +570,112 @@ public class Master extends Controller {
 		renderSuccess(results);
 	}
 	
-	public static void getLocation(String userName,	String password, @Required Long rId, String z) {
+	/**
+	 * 接受GPS坐标信息
+	 * 
+	 * @param datas
+	 */
+	public static void receiver(@Required String datas) {
+		// 参数验证
+		if (Validation.hasErrors()) {
+			renderFail("error_parameter_required");
+		}
+		
+		RWatch r = null;
+		Production p = null;
+		BSLocation bsl = null;
+		ElectronicFence ef = null;
+		String tmpStr = null;
+		try {
+			tmpStr = new String(Coder.decryptBASE64(datas));
+			if(StringUtil.isEmpty(tmpStr))renderText(3);
+		} catch (Exception e) {
+			e.printStackTrace();
+			renderText(3);
+		}
+		String[] tmpArray = tmpStr.split(",");
+		int length = tmpArray.length==0?1:tmpArray.length;
+		
+		for(int j=0;j<length;j++){
+			String[] dataArray = tmpArray[j].split("\\|");
+			String sn = dataArray[1];
+			if(r == null){
+				r = RWatch.find("bySerialNumber", sn).first();
+				if(r == null || !r.isPersistent())renderText(1);
+			}
+			
+			String rt = dataArray[2];
+			if(p == null){
+				p = Production.find("byP_name", rt).first();
+				if(p == null || !p.isPersistent())renderText(2);
+			}
+			
+			Location l = new Location();
+			l.rwatch = r;
+			
+			String datetime = dataArray[3];
+			double latitude = Double.parseDouble(dataArray[4]);
+			int latitudeFlag = Integer.parseInt(dataArray[5]);
+			double longitude = Double.parseDouble(dataArray[6]);
+			int longitudeFlag = Integer.parseInt(dataArray[7]);
+			double speed = Double.parseDouble(dataArray[8]);
+			int direction = Integer.parseInt(dataArray[9]);
+			String status  = dataArray[10];
+			int mcc = Integer.parseInt(dataArray[11]);
+			int mnc = Integer.parseInt(dataArray[12]);
+			int cellid = Integer.parseInt(dataArray[13]);
+			int lac = Integer.parseInt(dataArray[14]);
+			String signal1 = dataArray[15];
+			
+			l.dateTime = datetime;
+			l.latitude = latitude;
+			l.latitudeFlag = latitudeFlag;
+			l.longitude = longitude;
+			l.longitudeFlag = longitudeFlag;
+			l.speed = speed;
+			l.direction = direction;
+			l.status = status;
+			l.mcc = mcc;
+			l.mnc = mnc;
+			l.lac = lac;
+			l.cellid = cellid;
+			bsl = BSLocation.find("mcc=? and mnc=? and lac=? and cellid=?", mcc,mnc,lac,cellid).first();
+			if(bsl != null && bsl.isPersistent()){
+				l.cell_accuracy = bsl.cell_accuracy;
+				l.cell_coordinateType = bsl.cell_coordinateType;
+				l.cell_latitude = bsl.latitude;
+				l.cell_longitude = bsl.longitude;
+			}
+			l.signal1 = signal1;
+			l.receivedTime = new Date();
+			
+			if(ef == null)ef = ElectronicFence.find("byRWatch", r).first();
+			if(ef != null){
+				if(ef.on == 0)l.valid = 0;
+				else if(ef.on == 1){
+					if(new BigDecimal(StringUtil.distanceBetween(latitude, longitude, ef.lat, ef.lon)).compareTo(new BigDecimal(ef.radius)) > 0){
+						l.valid = 2;
+					}else{
+						l.valid = 1;
+					}
+				}
+			}
+			l._save();
+		}
+		renderText(0);
+	}
+
+	/**
+	 * 获取GPS信息
+	 * 
+	 * @param startTime
+	 * @param endTime
+	 * @param page
+	 * @param num
+	 * @param rId
+	 * @param z
+	 */
+	public static void getLocation( String startTime, String endTime, Integer page,Integer num, @Required Long rId, @Required String z) {
 		
 		// 参数验证
 		if (Validation.hasErrors()) {
@@ -512,16 +687,66 @@ public class Master extends Controller {
 			renderFail("error_session_expired");
 		}
 		
+		int begin = 0;
+		if(num == null){
+			num = 100;
+		}
+		num = num > 100? 100:num;
+		if(page != null && page > 1){
+			begin = (page-1)*num;
+		}
+		
+		List<Location> locations = null;
+		Date startTimeDate = null;
+		Date endTimeDate = null;
+		try {
+			if (startTime != null) {
+				startTimeDate = sdf.parse(startTime);
+			}
+			if (endTime != null) {
+				endTimeDate = sdf.parse(endTime);
+			}
+			
+			if(startTimeDate != null && endTimeDate != null){
+				locations = Location.find("rwatch_id=? and (receivedTime>? and receivedTime<?)", rId, startTimeDate, endTimeDate).fetch(begin, num);
+			}else if(startTimeDate != null && endTimeDate == null){
+				locations = Location.find("rwatch_id=? and receivedTime>?", rId, startTimeDate).fetch(begin, num);
+			}else if(startTimeDate == null && endTimeDate != null){
+				locations = Location.find("rwatch_id=? and receivedTime<?", rId, endTimeDate).fetch(begin, num);
+			}else if(startTimeDate == null && endTimeDate == null){
+				locations = Location.find("rwatch_id=?", rId).fetch(begin, num);
+			}
+			
+		} catch (Exception e) {
+			renderFail("error_dateformat", error_dateformat);
+		}
+		
 		JSONObject results = initResultJSON();
 		JSONArray datalist = initResultJSONArray();
-		List<Location> locations = Location.find("rwatch_id=?", rId).fetch(5);
+		
 		if (!locations.isEmpty()) {
 			for(Location l : locations){
 				JSONObject data = initResultJSON();
+				data.put("id", l.id);
+				data.put("rwatchId", l.rwatch.id);
 				data.put("dateTime", l.dateTime);
 				data.put("latitude", l.latitude);
 				data.put("longitude", l.longitude);
-				data.put("rwatchId", l.rwatch.id);
+				data.put("cell_latitude", l.cell_latitude);
+				data.put("cell_longitude", l.cell_longitude);
+				data.put("cell_accuracy", l.cell_accuracy);
+				data.put("cell_coordinateType", l.cell_coordinateType);
+				data.put("speed", l.speed);
+				data.put("direction", l.direction);
+				data.put("dateTime", l.dateTime);
+				data.put("status", l.status);
+				data.put("mcc", l.mcc);
+				data.put("mnc", l.mnc);
+				data.put("lac", l.lac);
+				data.put("cellid", l.cellid);
+				data.put("latitudeFlag", l.latitudeFlag);
+				data.put("longitudeFlag", l.longitudeFlag);
+				data.put("waring", l.valid);
 				datalist.add(data);
 			}
 		}
@@ -529,31 +754,13 @@ public class Master extends Controller {
 		renderSuccess(results);
 	}
 	
-	public static void insertLocation(@Required Long rId, Date dateTime, double latitude, double longitude, Integer mcc, Integer mnc, Integer lac, @Required String z) {
-		
-		// 参数验证
-		if (Validation.hasErrors()) {
-			renderFail("error_parameter_required");
-		}
-		
-		RWatch r = RWatch.findById(rId);
-		if(r != null){
-			Location l = new Location();
-			l.dateTime = dateTime;
-			l.lac = lac;
-			l.mcc = mcc;
-			l.mnc = mnc;
-			l.latitude = latitude;
-			l.longitude = longitude;
-			l.receivedTime = new Date();
-			l.rwatch = r;
-			l._save();
-		}
-		
-		JSONObject results = initResultJSON();
-		renderSuccess(results);
-	}
-	
+	/**
+	 * 重置密码
+	 * 
+	 * @param oldPassword
+	 * @param newPassword
+	 * @param z
+	 */
 	public static void changePassword(@Required String oldPassword, @Required String newPassword, @Required String z) {
 		JSONObject results = initResultJSON();
 		// ....
@@ -571,32 +778,167 @@ public class Master extends Controller {
 		
 
 	}
-
-	public static void clearCache(@Required String z) {
-		JSONObject results = initResultJSON();
-		// ....
+	
+	/**
+	 * 设置电子围栏信息
+	 * 
+	 * @param rId
+	 * @param on
+	 * @param lon
+	 * @param lat
+	 * @param radius
+	 * @param z
+	 */
+	public static void setElectronicFence(@Required Long rId, @Required Integer on, Double lon, Double lat, Double radius, @Required String z) {
 		if (Validation.hasErrors()) {
 			renderFail("error_parameter_required");
 		}
-
-		Cache.clear();
+		JSONObject results = initResultJSON();
+		RWatch rWatch = RWatch.findById(rId);
+		if(rWatch == null)renderFail("error_rwatch_not_exist");
+		ElectronicFence ef = ElectronicFence.find("byRWatch", rWatch).first();
+		if (ef == null) {
+			ef = new ElectronicFence();
+			ef.rWatch = rWatch;
+		}
+		ef.dateTime = new Date();
+		ef.on = on;
+		if (on == 0) {
+			if (lat != null) {
+				ef.lat = lat;
+			}
+			if (lon != null) {
+				ef.lon = lon;
+			}
+			if (radius != null) {
+				ef.radius = radius;
+			}
+		}
+		ef.save();
 		renderSuccess(results);
+	}
+	
+	/**
+	 * 绑定儿童手表(定位器)
+	 * 
+	 * @param m_number
+	 * @param w_number
+	 * @param sn
+	 */
+	public static void addRWatch(@Required String m_number, @Required String w_number, @Required String sn) {
+		if (Validation.hasErrors()) {
+			renderFail("error_parameter_required");
+		}
+		JSONObject results = initResultJSON();
+		if(SN.count("sn=?", sn) < 1){
+			renderFail("error_rwatch_not_exist");
+		}
+		Customer c = Customer.find("byM_number", m_number).first();
+		if(c == null){
+			renderFail("error_userid_not_exist");
+		}
+		long count = RWatch.count("guardian_number1=? or guardian_number2=? or guardian_number3=? or guardian_number4=?", c.m_number,c.m_number,c.m_number,c.m_number);
+		int tmpMax = Integer.parseInt(Play.configuration.getProperty("rwatch.max"));
+		if (tmpMax == 0) {
+			tmpMax = 5;
+		}
+		if (count > tmpMax) {
+			renderFail("error_rwatch_max");
+		}
 
+		RWatch rWatch = RWatch.find("bySerialNumber", sn).first();
+		if (rWatch == null) {
+			rWatch = new RWatch();
+			rWatch.guardian_number1 = c.m_number;
+			rWatch.serialNumber = sn;
+			rWatch.m_number = w_number;
+			rWatch.c = c;
+			rWatch.bindDate = new Date();
+		}else if(rWatch.c == null){
+			rWatch.guardian_number1 = c.m_number;
+			rWatch.serialNumber = sn;
+			rWatch.m_number = w_number;
+			rWatch.c = c;
+			rWatch.bindDate = new Date();
+		}else{
+			renderFail("error_rwatch_bind_full");
+		}
+		rWatch.save();
+		renderSuccess(results);
+	}
+	
+	/**
+	 * 解绑儿童手表(定位器)
+	 * 
+	 * @param w_number
+	 * @param z
+	 */
+	public static void delRWatch(@Required String w_number, @Required String z) {
+		if (Validation.hasErrors()) {
+			renderFail("error_parameter_required");
+		}
+		RWatch rWatch = RWatch.find("byM_number", w_number).first();
+		if(rWatch == null)renderFail("error_rwatch_not_exist");
+		Session s = sessionCache.get();
+		if(s.c.id != rWatch.c.id)renderFail("error_not_owner");
+		rWatch.c = null;
+		rWatch.save();
+		JSONObject results = initResultJSON();
+		renderSuccess(results);
 	}
 
 	/**
-	 * ......
+	 * Web绑定儿童手表(定位器)
 	 * 
-	 * @param username
-	 *            ...
-	 * @param password
-	 *            ..
-	 * @param sessionID
-	 *            ..
+	 * @param m_number
+	 * @param w_number
+	 * @param sn
+	 */
+	public static void webBindingWatch(@Required String m_number, @Required String w_number, @Required String sn) {
+		if (Validation.hasErrors()) {
+			renderFail("error_parameter_required");
+		}
+		if(!Validation.phone(SUCCESS, m_number).ok || !Validation.phone(SUCCESS, w_number).ok){
+			renderFail("error_parameter_required");
+		}
+		JSONObject results = initResultJSON();
+		if(SN.count("sn=?", sn) < 1){
+			renderFail("error_rwatch_not_exist");
+		}
+		Customer c = Customer.find("byM_number", m_number).first();
+		if(c == null){
+			renderFail("error_userid_not_exist");
+		}
+		long count = RWatch.count("guardian_number1=? or guardian_number2=? or guardian_number3=? or guardian_number4=?", c.m_number,c.m_number,c.m_number,c.m_number);
+		int tmpMax = Integer.parseInt(Play.configuration.getProperty("rwatch.max"));
+		if (tmpMax == 0) {
+			tmpMax = 5;
+		}
+		if (count > tmpMax) {
+			renderFail("error_rwatch_max");
+		}
+
+		try {
+			boolean s = SendSMS.sendMsg(new String[]{w_number}, Play.ctxPath+"bindingWatch?sn="+sn+"&m_number="+m_number+"&w_number="+w_number);
+			if(!s){
+				play.Logger.error("webBindingWatch: result="+s+" PNumber="+m_number+" sn="+sn);
+				renderText("验证码获取失败请稍后再试");
+			}
+		} catch (Exception e) {
+			play.Logger.error("webBindingWatch: PNumber="+m_number+" sn="+sn);
+			play.Logger.error(e.getMessage());
+			renderFail("error_unknown_command");
+		}
+		
+		renderSuccess(results);
+	}
+	
+	/**
+	 * 下载
+	 * 
+	 * @param id
 	 * @param fileID
-	 *            ..uuid
-	 * @param fileName
-	 *            ....
+	 * @param entity
 	 */
 	public static void download(@Required String id, @Required String fileID, @Required String entity) {
 
@@ -638,11 +980,11 @@ public class Master extends Controller {
 	}
 
 	/**
-	 * 版本校验
+	 * 获取版本信息
 	 * 
 	 * @param version
-	 * @param type
-	 * @throws JSONException 
+	 * @param m_id
+	 * @param m_type
 	 */
 	public static void update(@Required String version, Integer m_id, String m_type) {
 		if (Validation.hasErrors()) {

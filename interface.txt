@@ -8,7 +8,7 @@ m_type:手机操作系统  Android IOS WP *传递次参数必须和服务器设置的一样 例 m_type=
 
 
 2 注册
-http://127.0.0.1:9000/c/reg?z=MjN8MTIzNDV8MTIsMTQsODcsamosZmZ8MTIzNDU2fDEyMzQ1NnwxfDEzODM4Mzg5NDM2fDEyNDgzM3wxMjM0NTZ8MzIx
+http://127.0.0.1:9000/c/reg?z=MjN8MTIzNDV8MTIsMTQsODcsamosZmZ8MTIzNDU2fDEyMzQ1NnwxfDE1MDAwOTkzNDczfDIwOTQzNnwxMjM0NTZ8MzIx
 (必须)z
 
 23|   12345|12,14,87,jj,ff|123456|123456|1                          |13838389436|1248  |123456|321
@@ -68,68 +68,70 @@ http://127.0.0.1:9000/c/getCustomerInfo?z=c7901d79-9cb4-4b31-8f86-5607dee97036
 {"state":"1","results":{"phonenumber":"13838389436","nickname":"昵称","email":"haha@163.com","os":"1","gender":"1","city":"上海","height":"175","weight":"75","step":"100","birthday":"1986-05-21","portrait":"/public/images/girl.jpg"}}
 
 
-10 忘记密码时获取密码
+8 忘记密码时获取密码
 http://127.0.0.1:9000/c/resetpassword?m=13838389436
 (必须)m:手机 邮箱 微信号
 {"state":"1","results":{}}
 
 
-12 请求参数错误或服务器没有数据时
+9 请求参数错误或服务器没有数据时
 state：0
 msg：错误信息
 
 {"state":"0","msg":"重置密码邮件发送失败,请检查您的用户名."}
 
 
-13 修改密码
+10 修改密码
 http://127.0.0.1:9000/c/changePassword?oldPassword=321&newPassword=098765&z=d3598880-6b2c-40be-9bc6-174c0a199527
 (必须)oldPassword:旧密码
 (必须)newPassword:新密码
 (必须)z
 
 
-14 app收取验证码
+11 app收取验证码
 http://127.0.0.1:9000/c/verificationCode?m_number=150099878767
 
 返回
 {"state":"1","results":{"code":1234}}
 
 
-15 绑定手表
+12 手表申请绑定
 http://127.0.0.1:9000/c/bindingWatch?sn=3212332&m_number=150099878767&w_number=150099878763
 (必须)sn:产品标识号
 (必须)m_number:app sim卡电话号码
 (必须)w_number:watch sim卡电话号码
 
 a 手表被app绑定后才能定位手表位置
-b 等待手表确认后，可以查看手表位置
 
 返回
 {"state":"1","results":{}}
 
-服务器再接到app绑定请求后会向手表发送确认短信
+web版绑定手机，服务器收到绑定请求后会向手表发送短信
 
-
-16 手表确认(手表接口)
-http://127.0.0.1:9000/c/watchConfirm?sn=3212332&m_number=150099878767&w_number=150099878763
 
 
 返回 0 失败 1 成功
 
 
-17 设置手表信息(手表接口)
-http://127.0.0.1:9000/c/watchInfo?sn=3212332&w_number=150099878763&p_version=1&&version=1.1&w_type=M26&imsi=22334223&channel=AU
+13 web发送绑定请求
+http://127.0.0.1:9000/c/bindingWatchforWeb?sn=3212332&m_number=150099878767&w_number=150099878763
+
+返回
+{"state":"1","results":{}
+
+短信内容为：服务器地址，==
+
+
+14 设置手表信息
+http://127.0.0.1:9000/c/watchInfo?sn=3212332&w_number=150099878763&w_type=M26&channel=AU
 (必须)sn:产品标识
 (必须)w_number:儿童手机号
-p_version:协议版本号
-version:儿童终端软件版本号
 w_type:儿童终端型号
-imsi:IMSI
 channel:儿童终端型号生产厂家
 
 
-18 解绑手表
-http://127.0.0.1:9000/c/unbindingWatch?sn=3212332&rId=&m_number=150099878767
+15 解绑手表
+http://127.0.0.1:9000/c/unbindingWatch?w_number=150099878767&z=d3598880-6b2c-40be-9bc6-174c0a199527
 (必须)sn:产品标识号
 m_number:sim卡电话号码
 
@@ -138,7 +140,7 @@ m_number:sim卡电话号码
 返回
 {"state":"1","results":{}}
 
-19 设置手表信息和亲情号码
+16 设置手表信息和亲情号码
 http://127.0.0.1:9000/c/watchInfo?rId=1&nickname=%E6%B5%8B%E8%AF%95&guardian_number1=1231234432&guardian_number2=1231234432&guardian_number3=1231234432&guardian_number4=1231234432&z=6335f91d-372e-4c19-9f5f-a9ec022fe513
 (必须)rId:已绑定产品ID
 nickname:产品昵称
@@ -152,18 +154,18 @@ guardian_number4=监护人电话号码4
 {"state":"1","results":{}}
 
 
-20 APP获得手表信息
+17 APP获得手表信息
 http://127.0.0.1:9000/c/watchList?z=6335f91d-372e-4c19-9f5f-a9ec022fe513
 获得该手机绑定的所有手表信息
 
 返回
-{"state":"1","results":{"count":3,"list":[{"rId":1,"sn":312321321,"m_number":15000001111,"confirmed":1,"guardian_number1":15000002222,"guardian_number2":15000002222,"guardian_number3":15000002223,"guardian_number4":15000002224,"nickname":"军伟","p_name":"M26","bindDate":"2014-11-03 22:00:00","electronicFence_lat":,"1232.11","electronicFence_lon":,"12432.11","electronicFence_radius",100,"electronicFence_datetime","2014-11-03 22:00:00","electronicFence_status",0},{},{}]}
+{"state":"1","results":{"list":[{"rId":1,"imei":"88888888","m_number":"15121062545","nickname":"测试","guardian_number1":"1231234432","guardian_number2":"1231234432","guardian_number3":"1231234432","guardian_number4":"1231234432","bindDate":"2014/11/30 23:04:17","production":"M28","sn":"3212332","electronicFence_lat":1214.5822,"electronicFence_lon":12454.4544,"electronicFence_radius":10,"electronicFence_datetime":"2014/12/01 00:08:14","electronicFence_status":0}]}}
 
 count:绑定手表个数
 rId:手表ID
+imei:IMEI
 sn:产品识别号
 m_number:手表电话号
-confirmed:是否被激活
 guardian_number1-4:亲情号码1-4
 nickname:昵称
 p_name:手表型号
@@ -175,8 +177,8 @@ electronicFence_datetime:电子围栏设置日期
 electronicFence_status:电子围栏是否被开启 0:关闭 1:开启
 
 
-21 手表发送GPS信息(手表接口)
-http://127.0.0.1:9000/c/sendGPS?data=MjN8MTU3NDM4NXwyMDE0MTAwMTEwMTAxMHwxMjM0LjUyMjZ8MXwxMjM0LjUyMjZ8MXwxMDB8MTMyfDE2fDQ2MHwxfDg5fDIyMDZ8ODg=&rId=20
+18 手表发送GPS信息(手表接口)
+http://127.0.0.1:9000/c/sendGPS?datas=MjN8MTU3NDM4NXwyMDE0MTAwMTEwMTAxMHwxMjM0LjUyMjZ8MXwxMjM0LjUyMjZ8MXwxMDB8MTMyfDE2fDQ2MHwxfDg5fDIyMDZ8ODg=&rId=20
 
 原始格式
 23|1574385|20141001101010|1234.5226|1|1234.5226|1|100|132|16|460|1|89|2206|AC|1|88
@@ -186,21 +188,27 @@ MjN8MTU3NDM4NXwyMDE0MTAwMTEwMTAxMHwxMjM0LjUyMjZ8MXwxMjM0LjUyMjZ8MXwxMDB8MTMyfDE2
 23      |1574385       |28            |20141001101010           |1234.5226          |1            |1234.5226            |1             |100                 |132                                     |16    |460|1  |89     |2206|AC     |1 |88
 二位随机 sn(产品识别号) rt(产品型号)   datetime(yyyyMMddHHmmss)  latitude(ddmm.mmmm) latitudeFlag  longitude(ddmm.mmmm)  longitudeFlag  speed(0.0 至 1851.8) direction(相对位移方向，000.0至359.9度)  status mcc mnc cellid  lac  signal1 ta 随即
 
-data:GPS数据
+datas:GPS数据
 rId:从服务器得到的手表id
 
+一次传多条数据格式为
+23|1574385|20141001101010|1234.5226|1|1234.5226|1|100|132|16|460|1|89|2206|AC|1|88,23|1574385|20141001101010|1234.5226|1|1234.5226|1|100|132|16|460|1|89|2206|AC|1|88,23|1574385|20141001101010|1234.5226|1|1234.5226|1|100|132|16|460|1|89|2206|AC|1|88
+每条数据中间以","分隔,然后转为Base64
 
-22 APP获得GPS数据(未完成)
-http://127.0.0.1:9000/c/searchLocation?rId=1&num=55&z=6335f91d-372e-4c19-9f5f-a9ec022fe513
+
+19 APP获得GPS数据(未完成)
+http://127.0.0.1:9000/c/searchLocation?rId=1&startTime=2014-11-08%200:00:00&endTime=2014-12-08%200:00:00&z=6335f91d-372e-4c19-9f5f-a9ec022fe513
 
 (必须)rId:手表ID
+startTime:起始时间
+endTime:结束时间
 num:从服务器获得多少条数据，如果不传默认获得1条
 
-{"state":"1","results":{}}
+{"state":"1","results":{"list":[{"id":37,"rwatchId":1,"dateTime":"20141001101010","latitude":116.404,"longitude":39.915,"cell_latitude":0,"cell_longitude":0,"cell_accuracy":0,"cell_coordinateType":0,"speed":100,"direction":132,"status":"16","mcc":460,"mnc":1,"lac":2206,"cellid":89,"latitudeFlag":1,"longitudeFlag":1,"waring":0},{"id":38,"rwatchId":1,"dateTime":"20141001101010","latitude":116.404,"longitude":39.915,"cell_latitude":0,"cell_longitude":0,"cell_accuracy":0,"cell_coordinateType":0,"speed":100,"direction":132,"status":"16","mcc":460,"mnc":1,"lac":2206,"cellid":89,"latitudeFlag":1,"longitudeFlag":1,"waring":0},{"id":39,"rwatchId":1,"dateTime":"20141001101010","latitude":128.404,"longitude":40.915,"cell_latitude":0,"cell_longitude":0,"cell_accuracy":0,"cell_coordinateType":0,"speed":100,"direction":132,"status":"16","mcc":460,"mnc":1,"lac":2206,"cellid":89,"latitudeFlag":1,"longitudeFlag":1,"waring":0},{"id":40,"rwatchId":1,"dateTime":"20141001101010","latitude":119.404,"longitude":39.915,"cell_latitude":0,"cell_longitude":0,"cell_accuracy":0,"cell_coordinateType":0,"speed":100,"direction":132,"status":"16","mcc":460,"mnc":1,"lac":2206,"cellid":89,"latitudeFlag":1,"longitudeFlag":1,"waring":0}]}}
 
 
-23 APP设置电子围栏(完成)
-http://127.0.0.1:9000/c/electronicFence?rId=1&on=1&lat=1214.5822&long=12454.4544&radius=100&z=6335f91d-372e-4c19-9f5f-a9ec022fe513
+20 APP设置电子围栏(完成)
+http://127.0.0.1:9000/c/electronicFence?rId=1&on=1&lat=1214.5822&lon=12454.4544&radius=100&z=6335f91d-372e-4c19-9f5f-a9ec022fe513
 
 (必须)rId:手表ID
 on: 0 关闭 1 开启

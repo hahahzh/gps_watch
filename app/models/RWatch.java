@@ -27,25 +27,27 @@ public class RWatch extends Model {
 	public String m_number;
 	
 	@Phone
-	public Integer guardian_number1;
+	public String guardian_number1;
 	
 	@Phone
-	public Integer guardian_number2;
+	public String guardian_number2;
 	
 	@Phone
-	public Integer guardian_number3;
+	public String guardian_number3;
 	
 	@Phone
-	public Integer guardian_number4;
+	public String guardian_number4;
 	
 	public String nickname;
 	
 	public String serialNumber;
 	
+	public String channel;
+	
 	public Date bindDate;
 	
 	//M28 M26
-	@OneToOne(optional = false, cascade = CascadeType.ALL)
+	@ManyToOne(optional = false, cascade = CascadeType.ALL)
 	public Production production;
 	
 	@Required

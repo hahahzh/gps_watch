@@ -39,7 +39,7 @@ public class Customer extends Model {
 	@Required
 	@Phone
 	@Index(name = "idx_m_number")
-	public Integer m_number;
+	public String m_number;
 
 	@Required
 	@MaxSize(15)
