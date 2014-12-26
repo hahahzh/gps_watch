@@ -141,13 +141,14 @@ m_number:sim卡电话号码
 {"state":"1","results":{}}
 
 16 设置手表信息和亲情号码
-http://127.0.0.1:9000/c/watchInfo?rId=1&nickname=%E6%B5%8B%E8%AF%95&guardian_number1=1231234432&guardian_number2=1231234432&guardian_number3=1231234432&guardian_number4=1231234432&z=6335f91d-372e-4c19-9f5f-a9ec022fe513
+http://127.0.0.1:9000/c/watchInfo?rId=1&nickname=%E6%B5%8B%E8%AF%95&guardian_number1=1231234432&guardian_number2=1231234432&guardian_number3=1231234432&guardian_number4=1231234432&whiteList=15088771473,13221332545,12345458745&z=6335f91d-372e-4c19-9f5f-a9ec022fe513
 (必须)rId:已绑定产品ID
 nickname:产品昵称
 guardian_number1=监护人电话号码1
 guardian_number2=监护人电话号码2
 guardian_number3=监护人电话号码3
 guardian_number4=监护人电话号码4
+whiteList=电话白名单 格式 15088771473,13221332545,12345458745
 (必须)z
 
 返回
@@ -196,7 +197,7 @@ rId:从服务器得到的手表id
 每条数据中间以","分隔,然后转为Base64
 
 
-19 APP获得GPS数据(未完成)
+19 APP获得GPS数据
 http://127.0.0.1:9000/c/searchLocation?rId=1&startTime=2014-11-08%200:00:00&endTime=2014-12-08%200:00:00&z=6335f91d-372e-4c19-9f5f-a9ec022fe513
 
 (必须)rId:手表ID
@@ -218,3 +219,21 @@ radius:半径
 
 返回
 {"state":"1","results":{}}
+
+
+21 手表获取信息
+http://127.0.0.1:9000/c/getRWatchInfo?sn=421341421421
+(必须)sn: serial number
+
+{"state":"1","results":{"list":{"rId":1,"imei":"7897789","m_number":"15121062545","nickname":"再测","guardian_number1":"1233211234567","guardian_number2":"1233211234567","guardian_number3":"1233211234567","guardian_number4":"1233211234567","bindDate":"2014/11/30 23:04:17","production":"M28","sn":"3212332","whiteList":["15000965471","15181002545","12345458745"]}}}
+
+
+22 手表同步时间
+http://127.0.0.1:9000/c/watchSyncTime
+
+返回字符串：141216,222712(yyMMdd,HHmmss)
+
+
+23 插入手表SN号
+http://115.29.176.128/c/insertSerialNumber?username=admin&pwd=admin&from=ZHM282014122490000&to=ZHM282014122495000
+返回插入的记录数

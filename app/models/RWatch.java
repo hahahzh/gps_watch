@@ -44,6 +44,8 @@ public class RWatch extends Model {
 	
 	public String channel;
 	
+	public String whiteList;
+	
 	public Date bindDate;
 	
 	//M28 M26

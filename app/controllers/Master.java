@@ -2,6 +2,8 @@ package controllers;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -10,6 +12,7 @@ import java.util.UUID;
 
 import javax.mail.internet.InternetAddress;
 
+import models.AdminManagement;
 import models.BSLocation;
 import models.CheckDigit;
 import models.ClientVersion;
@@ -22,11 +25,11 @@ import models.RWatch;
 import models.SN;
 import models.Session;
 import net.sf.json.JSONArray;
-import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import play.Play;
 import play.data.validation.Required;
 import play.data.validation.Validation;
+import play.db.DB;
 import play.db.Model;
 import play.db.jpa.Blob;
 import play.i18n.Messages;
@@ -83,6 +86,7 @@ public class Master extends Controller {
 	public static final int error_download = 19;// 下载错误
 	public static final int error_send_mail_fail = 20;// 发送Email错误
 	public static final int error_already_exists = 21;// 已存在
+	public static final int error_parameter_formate = 22;// 格式错误 
 
 	// 存储Session副本
 	private static ThreadLocal<Session> sessionCache = new ThreadLocal<Session>();
@@ -92,7 +96,8 @@ public class Master extends Controller {
 	 * 
 	 * @param sessionID
 	 */
-	@Before(unless={"checkDigit", "register", "login", "sendResetPasswordMail", "update", "download", "addRWatch", "webBindingWatch", "setRWatch", "receiver"},priority=1)
+	@Before(unless={"checkDigit", "register", "login", "sendResetPasswordMail", "update", "download", 
+			"addRWatch", "webBindingWatch", "setRWatch", "receiver", "getRWatchInfo", "syncTime", "insertSN"},priority=1)
 	public static void validateSessionID(@Required String z) {
 		
 		Session s = Session.find("bySessionID",z).first();
@@ -470,9 +475,9 @@ public class Master extends Controller {
 	 * @param rId
 	 * @param z
 	 */
-	public static void setRWatch(String imei, String channel, String w_type, 
+	public static void setRWatch(String imei, String channel, String w_type,
 			String nickname, String w_number, String guardian_number1, String sn, String guardian_number2, 
-			String guardian_number3, String guardian_number4, Long rId, String z) {
+			String guardian_number3, String guardian_number4, Long rId, String whiteList,String z) {
 		RWatch r = null;
 		if(!StringUtil.isEmpty(sn)){
 			r = RWatch.find("bySerialNumber", sn).first();
@@ -513,9 +518,58 @@ public class Master extends Controller {
 		}
 		if (!StringUtil.isEmpty(guardian_number4)){
 			r.guardian_number4 = guardian_number1;
+		}	
+		if (!StringUtil.isEmpty(whiteList)){
+			if(whiteList.split(",").length < 0)renderFail("error_parameter_formate");
+			r.whiteList = whiteList;
 		}
 		r._save();
 		JSONObject results = initResultJSON();
+		renderSuccess(results);
+	}
+	
+	/**
+	 * 手表获取信息(定位器)
+	 * 
+	 * @param sn
+	 */
+	public static void getRWatchInfo(@Required String sn) {
+		
+		// 参数验证
+		if (Validation.hasErrors()) {
+			renderFail("error_parameter_required");
+		}
+
+		List<RWatch> rwatchs = RWatch.find("bySerialNumber", sn).fetch();
+		if(rwatchs.size() !=1 )renderFail("error_rwatch_not_exist");
+		
+		JSONObject results = initResultJSON();
+		JSONObject data = initResultJSON();
+		if (!rwatchs.isEmpty()) {
+			for(RWatch r : rwatchs){
+				data.put("rId", r.id);
+				data.put("imei", r.imei);
+				data.put("m_number", r.m_number);
+				data.put("nickname", r.nickname);
+				data.put("guardian_number1", r.guardian_number1);
+				data.put("guardian_number2", r.guardian_number2);
+				data.put("guardian_number3", r.guardian_number3);
+				data.put("guardian_number4", r.guardian_number4);
+				data.put("bindDate", DateUtil.reverseDate(r.bindDate,3));
+				data.put("production", r.production.p_name);
+				data.put("sn", r.serialNumber);
+				String[] wList = r.whiteList.split(",");
+				if(wList.length > 0){
+					JSONArray d = initResultJSONArray();
+					for(String s : wList){
+						d.add(s);
+					}
+					data.put("whiteList", d);
+				}
+			}
+		}
+		results.put("list", data);
+		results.put("timestamp",new Date().getTime()+"");
 		renderSuccess(results);
 	}
 	
@@ -568,6 +622,17 @@ public class Master extends Controller {
 		}
 		results.put("list", datalist);
 		renderSuccess(results);
+	}
+	
+	/**
+	 * 手表同步时间(定位器)
+	 * 
+	 * @param sn
+	 */
+	public static void syncTime(String sn) {
+//		List<RWatch> rwatchs = RWatch.find("bySerialNumber", sn).fetch();
+//		if(rwatchs.size() !=1 )renderFail("error_rwatch_not_exist");		
+		renderText(new SimpleDateFormat("yyMMddHHmmss").format(new Date()));
 	}
 	
 	/**
@@ -931,6 +996,47 @@ public class Master extends Controller {
 		}
 		
 		renderSuccess(results);
+	}
+	
+	public static void insertSN(@Required String username, @Required String pwd, @Required String from,@Required String to) {
+		if (Validation.hasErrors()) {
+			renderText("error");
+		}
+		
+		AdminManagement user = AdminManagement.find("byName", username).first();
+		if(user == null)renderText("error username");
+		if(!user.pwd.equals(pwd))renderText("error password");
+		
+		Integer snf = Integer.parseInt(from.substring(from.length()-5,from.length()));
+		Integer snt = Integer.parseInt(to.substring(to.length()-5,to.length()));
+		String str = from.substring(0,from.length()-5);
+		
+		Connection con = DB.getConnection();
+		int count=0;
+		try {
+			con.setAutoCommit(false);
+			con.setTransactionIsolation(con.TRANSACTION_READ_UNCOMMITTED);
+			PreparedStatement pst = (PreparedStatement) con.prepareStatement("insert into serial_number(sn) values (?)");
+			String tmp = "";
+			for(long i=snf;i<=snt;i++){
+				if(i<10)tmp="0000"+i;
+				else if(i<100)tmp="000"+i;
+				else if(i<1000)tmp="00"+i;
+				else if(i<10000)tmp="0"+i;
+				else if(i<100000)tmp=""+i;
+				pst.setString(1, str+tmp);
+				pst.addBatch();
+				count++;
+			}
+			pst.executeBatch();
+			con.commit();
+			renderText(count);
+		}catch(Exception e){
+			play.Logger.error("insertSN:"+e.getMessage());
+			renderText("error2");
+		}finally {
+			DB.close();
+		}
 	}
 	
 	/**

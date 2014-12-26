@@ -32,3 +32,20 @@ aliyun
 oviphoneyuwenjie
 114.215.180.64，用户名：root，密码：86f24d48
 RDS mysqlforrwatch.mysql.rds.aliyuncs.com 用户名oviphonerwatch 密码oviphone2014
+
+
+http://www.aliyun.com
+
+用户名：1006168123@qq.com
+
+密码oviphoneaiday
+
+ 
+
+ 
+
+进去后点用户中心-》管理控制台
+IP:115.29.176.128
+新Ecs实例名称kidsgps
+用户名root 密码Oviphone2014
+RDS gpswatch.mysql.rds.aliyuncs.com 用户名oviphonerwatch 密码oviphoneaiday

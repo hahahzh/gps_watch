@@ -23,6 +23,9 @@ GET     /                                       Application.index
 *       /c/bindingWatchforWeb					Master.webBindingWatch
 *       /c/sendGPS								Master.receiver
 *       /c/searchLocation						Master.getLocation
+*       /c/getRWatchInfo						Master.getRWatchInfo
+*       /c/watchSyncTime						Master.syncTime
+*       /c/insertSerialNumber					Master.insertSN
 
 # Ignore favicon requests
 GET     /favicon.ico                            404
