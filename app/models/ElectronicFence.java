@@ -10,6 +10,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
+import play.data.validation.Required;
 import play.db.jpa.Model;
 
 @Table(name="electronic_fence")
@@ -18,7 +19,7 @@ public class ElectronicFence extends Model{
 	/**
 	 * 定位器
 	 */
-	@OneToOne(optional = false, cascade = CascadeType.ALL)
+	@ManyToOne(optional = false, cascade = CascadeType.ALL)
 	public RWatch rWatch;
 	/**
 	 * 是否开启或者关闭
@@ -43,6 +44,9 @@ public class ElectronicFence extends Model{
 	 * 最后修改日期
 	 */
 	public Date dateTime;
+	
+	@Required
+	public Integer num;
 	
 	public String toString() {
 		return "1";

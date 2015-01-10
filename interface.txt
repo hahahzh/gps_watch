@@ -141,13 +141,19 @@ m_number:sim卡电话号码
 {"state":"1","results":{}}
 
 16 设置手表信息和亲情号码
-http://127.0.0.1:9000/c/watchInfo?rId=1&nickname=%E6%B5%8B%E8%AF%95&guardian_number1=1231234432&guardian_number2=1231234432&guardian_number3=1231234432&guardian_number4=1231234432&whiteList=15088771473,13221332545,12345458745&z=6335f91d-372e-4c19-9f5f-a9ec022fe513
+http://127.0.0.1:9000/c/watchInfo?rId=2&nickname=%E6%B5%8B%E8%AF%95&name_number1=%E7%88%B8%E7%88%B8&name_number2=%E5%A6%88%E5%A6%88&name_number3=%E7%88%B7%E7%88%B7&name_number4=%E5%A5%B6%E5%A5%B6&guardian_number1=1231234432&guardian_number2=1231234432&guardian_number3=1231234432&guardian_number4=1231234432mode=60&whiteList=mama:15088771473,baba:13221332545,%E5%A7%90%E5%A7%90:12345458745&z=9c7c9483-9aa9-4fa5-94bb-7e029ed0150b
+
 (必须)rId:已绑定产品ID
 nickname:产品昵称
 guardian_number1=监护人电话号码1
 guardian_number2=监护人电话号码2
 guardian_number3=监护人电话号码3
 guardian_number4=监护人电话号码4
+name_number1=监护人电话号码1昵称
+name_number2=监护人电话号码2昵称
+name_number3=监护人电话号码3昵称
+name_number4=监护人电话号码4昵称
+mode=180 手表心跳周期 单位秒 例:60 180 300
 whiteList=电话白名单 格式 15088771473,13221332545,12345458745
 (必须)z
 
@@ -160,7 +166,7 @@ http://127.0.0.1:9000/c/watchList?z=6335f91d-372e-4c19-9f5f-a9ec022fe513
 获得该手机绑定的所有手表信息
 
 返回
-{"state":"1","results":{"list":[{"rId":1,"imei":"88888888","m_number":"15121062545","nickname":"测试","guardian_number1":"1231234432","guardian_number2":"1231234432","guardian_number3":"1231234432","guardian_number4":"1231234432","bindDate":"2014/11/30 23:04:17","production":"M28","sn":"3212332","electronicFence_lat":1214.5822,"electronicFence_lon":12454.4544,"electronicFence_radius":10,"electronicFence_datetime":"2014/12/01 00:08:14","electronicFence_status":0}]}}
+{"state":"1","results":{"list":[{"rId":1,"imei":"7897789","m_number":"15121062545","nickname":"可以","guardian_number1":"18258206353","guardian_number2":"18258206353","guardian_number3":"18258206353","guardian_number4":"1233211234567","bindDate":"2014/11/30 23:04:17","mode":"180","production":"M28","sn":"3212332","electronicFence":[{"electronicFence_lat":1214.5822,"electronicFence_lon":12454.4544,"electronicFence_radius":100,"electronicFence_datetime":"2014/12/27 16:53:33","electronicFence_status":1},{"electronicFence_lat":0,"electronicFence_lon":0,"electronicFence_radius":0,"electronicFence_datetime":"2014/12/28 00:40:43","electronicFence_status":1},{"electronicFence_lat":1414.5822,"electronicFence_lon":12454.4544,"electronicFence_radius":100,"electronicFence_datetime":"2014/12/28 01:02:39","electronicFence_status":1,"electronicFence_num":1},{"electronicFence_lat":1414.5822,"electronicFence_lon":12454.4544,"electronicFence_radius":100,"electronicFence_datetime":"2014/12/28 00:46:19","electronicFence_status":1,"electronicFence_num":2},{"electronicFence_lat":0,"electronicFence_lon":0,"electronicFence_radius":0,"electronicFence_datetime":"2014/12/28 00:45:49","electronicFence_status":0,"electronicFence_num":3},{"electronicFence_lat":1414.5822,"electronicFence_lon":12454.4544,"electronicFence_radius":100,"electronicFence_datetime":"2014/12/28 00:46:16","electronicFence_status":1,"electronicFence_num":4}]},{"rId":2,"m_number":"15000993473","nickname":"测试","guardian_number1":"1231234432","guardian_number2":"1231234432","guardian_number3":"1231234432","guardian_number4":"1231234432","bindDate":"2014/12/24 15:41:34","mode":"180","sn":"ovi00000001","electronicFence":[{"electronicFence_lat":1414.5822,"electronicFence_lon":12454.4544,"electronicFence_radius":100,"electronicFence_datetime":"2014/12/28 01:03:45","electronicFence_status":1,"electronicFence_num":1},{"electronicFence_lat":1414.5822,"electronicFence_lon":12454.4544,"electronicFence_radius":100,"electronicFence_datetime":"2014/12/28 01:05:48","electronicFence_status":1,"electronicFence_num":2}]},{"rId":3,"m_number":"15272346523","guardian_number1":"18258206353","guardian_number2":"18258206353","guardian_number3":"18258206353","guardian_number4":"18258206353","bindDate":"2014/12/24 17:16:41","mode":"180","sn":"ovi00000002","electronicFence":[{"electronicFence_lat":1414.5822,"electronicFence_lon":12454.4544,"electronicFence_radius":100,"electronicFence_datetime":"2014/12/28 01:05:52","electronicFence_status":1,"electronicFence_num":2}]},{"rId":4,"m_number":"15272346523","guardian_number1":"18258206353","bindDate":"2014/12/24 17:21:23","mode":"180","sn":"ovi00000003"},{"rId":5,"m_number":"15272346523","guardian_number1":"18258206353","bindDate":"2014/12/24 17:37:38","mode":"180","sn":"ovi00000004"}]}}
 
 count:绑定手表个数
 rId:手表ID
@@ -171,29 +177,36 @@ guardian_number1-4:亲情号码1-4
 nickname:昵称
 p_name:手表型号
 bindDate:绑定日期
+mode:手表心跳周期,默认180秒 单位秒 例:60 180 300
+
+electronicFence:电子围栏列表 最多可以获得4个电子围栏信息
 electronicFence_lat:电子围栏纬度
 electronicFence_lon:电子围栏经度
 electronicFence_radius:电子围栏半径
 electronicFence_datetime:电子围栏设置日期
 electronicFence_status:电子围栏是否被开启 0:关闭 1:开启
+electronicFence_num:第n个电子围栏
+
 
 
 18 手表发送GPS信息(手表接口)
 http://127.0.0.1:9000/c/sendGPS?datas=MjN8MTU3NDM4NXwyMDE0MTAwMTEwMTAxMHwxMjM0LjUyMjZ8MXwxMjM0LjUyMjZ8MXwxMDB8MTMyfDE2fDQ2MHwxfDg5fDIyMDZ8ODg=&rId=20
 
 原始格式
-23|1574385|20141001101010|1234.5226|1|1234.5226|1|100|132|16|460|1|89|2206|AC|1|88
+23|1574385|20141001101010|1234.5226|1|1234.5226|1|100|132|16|460|1|89|2206|AC|89|2206|AC|89|2206|AC|89|2206|AC|89|2206|AC|89|2206|AC|1|88
 转为Base64
-MjN8MTU3NDM4NXwyMDE0MTAwMTEwMTAxMHwxMjM0LjUyMjZ8MXwxMjM0LjUyMjZ8MXwxMDB8MTMyfDE2fDQ2MHwxfDg5fDIyMDZ8QUN8MXw4OA==
+MjN8MzIxMjMzMnxNMjh8MjAxNDEwMDExMDEwMTB8MTE5LjQwNHwxfDM5LjkxNXwxfDEwMHwxMzJ8MTZ8NDYwfDF8ODl8MjIwNnxBQ3w4OXwyMjA2fEFDfDg5fDIyMDZ8QUN8ODl8MjIwNnxBQ3w4OXwyMjA2fEFDfDg5fDIyMDZ8QUN8MXw4OA==
 
-23      |1574385       |28            |20141001101010           |1234.5226          |1            |1234.5226            |1             |100                 |132                                     |16    |460|1  |89     |2206|AC     |1 |88
-二位随机 sn(产品识别号) rt(产品型号)   datetime(yyyyMMddHHmmss)  latitude(ddmm.mmmm) latitudeFlag  longitude(ddmm.mmmm)  longitudeFlag  speed(0.0 至 1851.8) direction(相对位移方向，000.0至359.9度)  status mcc mnc cellid  lac  signal1 ta 随即
+23      |1574385       |28            |20141001101010           |1234.5226          |1            |1234.5226            |1             |100                 |132                                     |16    |460|1 
+二位随机 sn(产品识别号) rt(产品型号)   datetime(yyyyMMddHHmmss)  latitude(ddmm.mmmm) latitudeFlag  longitude(ddmm.mmmm)  longitudeFlag  speed(0.0 至 1851.8) direction(相对位移方向，000.0至359.9度)  status mcc mnc 
+|89     |2206|AC     |89     |2206|AC     |89     |2206|AC     |89     |2206|AC     |89     |2206|AC     |89     |2206|AC     |1 |88
+ cellid1 lac1 signal1 cellid2 lac2 signal2 cellid3 lac3 signal3 cellid4 lac4 signal4 cellid5 lac5 signal5 cellid6 lac6 signal6 ta 随即
 
 datas:GPS数据
 rId:从服务器得到的手表id
 
 一次传多条数据格式为
-23|1574385|20141001101010|1234.5226|1|1234.5226|1|100|132|16|460|1|89|2206|AC|1|88,23|1574385|20141001101010|1234.5226|1|1234.5226|1|100|132|16|460|1|89|2206|AC|1|88,23|1574385|20141001101010|1234.5226|1|1234.5226|1|100|132|16|460|1|89|2206|AC|1|88
+23|1574385|28|20141001101010|1234.5226|1|1234.5226|1|100|132|16|460|1|89|2206|AC|89|2206|AC|89|2206|AC|89|2206|AC|89|2206|AC|89|2206|AC|1|88,23|1574385|28|20141001101010|1234.5226|1|1234.5226|1|100|132|16|460|1|89|2206|AC|89|2206|AC|89|2206|AC|89|2206|AC|89|2206|AC|89|2206|AC|1|88,23|1574385|28|20141001101010|1234.5226|1|1234.5226|1|100|132|16|460|1|89|2206|AC|89|2206|AC|89|2206|AC|89|2206|AC|89|2206|AC|89|2206|AC|1|88
 每条数据中间以","分隔,然后转为Base64
 
 
@@ -204,18 +217,20 @@ http://127.0.0.1:9000/c/searchLocation?rId=1&startTime=2014-11-08%200:00:00&endT
 startTime:起始时间
 endTime:结束时间
 num:从服务器获得多少条数据，如果不传默认获得1条
+waring:0 关闭 1 围栏内 2 围栏外
 
-{"state":"1","results":{"list":[{"id":37,"rwatchId":1,"dateTime":"20141001101010","latitude":116.404,"longitude":39.915,"cell_latitude":0,"cell_longitude":0,"cell_accuracy":0,"cell_coordinateType":0,"speed":100,"direction":132,"status":"16","mcc":460,"mnc":1,"lac":2206,"cellid":89,"latitudeFlag":1,"longitudeFlag":1,"waring":0},{"id":38,"rwatchId":1,"dateTime":"20141001101010","latitude":116.404,"longitude":39.915,"cell_latitude":0,"cell_longitude":0,"cell_accuracy":0,"cell_coordinateType":0,"speed":100,"direction":132,"status":"16","mcc":460,"mnc":1,"lac":2206,"cellid":89,"latitudeFlag":1,"longitudeFlag":1,"waring":0},{"id":39,"rwatchId":1,"dateTime":"20141001101010","latitude":128.404,"longitude":40.915,"cell_latitude":0,"cell_longitude":0,"cell_accuracy":0,"cell_coordinateType":0,"speed":100,"direction":132,"status":"16","mcc":460,"mnc":1,"lac":2206,"cellid":89,"latitudeFlag":1,"longitudeFlag":1,"waring":0},{"id":40,"rwatchId":1,"dateTime":"20141001101010","latitude":119.404,"longitude":39.915,"cell_latitude":0,"cell_longitude":0,"cell_accuracy":0,"cell_coordinateType":0,"speed":100,"direction":132,"status":"16","mcc":460,"mnc":1,"lac":2206,"cellid":89,"latitudeFlag":1,"longitudeFlag":1,"waring":0}]}}
+{"state":"1","results":{"list":[{"id":37,"rwatchId":1,"dateTime":"20141001101010","latitude":116.404,"longitude":39.915,"cell_latitude":0,"cell_longitude":0,"cell_accuracy":0,"cell_coordinateType":0,"speed":100,"direction":132,"status":"16","latitudeFlag":1,"longitudeFlag":1,"waring":0},{"id":38,"rwatchId":1,"dateTime":"20141001101010","latitude":116.404,"longitude":39.915,"cell_latitude":0,"cell_longitude":0,"cell_accuracy":0,"cell_coordinateType":0,"speed":100,"direction":132,"status":"16","latitudeFlag":1,"longitudeFlag":1,"waring":0},{"id":39,"rwatchId":1,"dateTime":"20141001101010","latitude":128.404,"longitude":40.915,"cell_latitude":0,"cell_longitude":0,"cell_accuracy":0,"cell_coordinateType":0,"speed":100,"direction":132,"status":"16","latitudeFlag":1,"longitudeFlag":1,"waring":0},{"id":41,"rwatchId":1,"dateTime":"20141001101010","latitude":116.404,"longitude":39.915,"cell_latitude":0,"cell_longitude":0,"cell_accuracy":0,"cell_coordinateType":0,"speed":100,"direction":132,"status":"16","latitudeFlag":1,"longitudeFlag":1,"waring":2}]}}
 
 
 20 APP设置电子围栏(完成)
-http://127.0.0.1:9000/c/electronicFence?rId=1&on=1&lat=1214.5822&lon=12454.4544&radius=100&z=6335f91d-372e-4c19-9f5f-a9ec022fe513
+http://127.0.0.1:9000/c/electronicFence?rId=1&num=2&on=1&lat=1414.5822&lon=12454.4544&radius=100&z=9c7c9483-9aa9-4fa5-94bb-7e029ed0150b
 
 (必须)rId:手表ID
 on: 0 关闭 1 开启
 lat:纬度
 lon:经度
 radius:半径
+num:第n个电子围栏 最多可设置4个电子围栏
 
 返回
 {"state":"1","results":{}}
@@ -225,8 +240,9 @@ radius:半径
 http://127.0.0.1:9000/c/getRWatchInfo?sn=421341421421
 (必须)sn: serial number
 
-{"state":"1","results":{"list":{"rId":1,"imei":"7897789","m_number":"15121062545","nickname":"再测","guardian_number1":"1233211234567","guardian_number2":"1233211234567","guardian_number3":"1233211234567","guardian_number4":"1233211234567","bindDate":"2014/11/30 23:04:17","production":"M28","sn":"3212332","whiteList":["15000965471","15181002545","12345458745"]}}}
+{"state":"1","results":{"list":{"rId":2,"m_number":"15272346523","nickname":"测试","guardian_number1":"1231234432","name_number1":"爸爸","guardian_number2":"1231234432","name_number2":"妈妈","guardian_number3":"1231234432","name_number3":"爷爷","guardian_number4":"1231234432","name_number4":"奶奶","bindDate":"2014/12/24 15:41:34","mode":"180","sn":"ovi00000001","whiteList":[{"mama":"15088771473"},{"baba":"13221332545"},{"姐姐":"12345458745"}]},"timestamp":"1419696309096"}}
 
+mode:心跳周期 单位为秒 例：60秒 180秒
 
 22 手表同步时间
 http://127.0.0.1:9000/c/watchSyncTime
@@ -237,3 +253,10 @@ http://127.0.0.1:9000/c/watchSyncTime
 23 插入手表SN号
 http://115.29.176.128/c/insertSerialNumber?username=admin&pwd=admin&from=ZHM282014122490000&to=ZHM282014122495000
 返回插入的记录数
+
+
+24 app请求向手表发送短信
+http://127.0.0.1:9000/c/sendMessage?p=ovi00000001&msg=%E7%9F%AD%E4%BF%A1%E6%B5%8B%E8%AF%953&z=9c7c9483-9aa9-4fa5-94bb-7e029ed0150b
+(必须)p:可以是手表的手机号、sn、手表昵称任意一个
+(必须)msg:短信内容
+(必须)z

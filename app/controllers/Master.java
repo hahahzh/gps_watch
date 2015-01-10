@@ -1,5 +1,6 @@
 package controllers;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -11,6 +12,8 @@ import java.util.Random;
 import java.util.UUID;
 
 import javax.mail.internet.InternetAddress;
+
+import org.apache.http.client.ClientProtocolException;
 
 import models.AdminManagement;
 import models.BSLocation;
@@ -38,6 +41,7 @@ import play.mvc.Controller;
 import play.mvc.Http.Header;
 import utils.Coder;
 import utils.DateUtil;
+import utils.HttpRequestSend;
 import utils.JSONUtil;
 import utils.SendMail;
 import utils.SendSMS;
@@ -140,6 +144,29 @@ public class Master extends Controller {
 			play.Logger.error("checkDigit: PNumber="+m_number+" digit="+n);
 			play.Logger.error(e.getMessage());
 			renderText("系统繁忙发送失败请再次获取");
+		}
+		renderText("OK");
+	}
+	
+	public static void sendMsg(@Required String p, @Required String msg,@Required String z) {
+		if (Validation.hasErrors()) {
+			renderFail("error_parameter_required");
+		}
+		
+		RWatch r = RWatch.find("m_number=?", p).first();
+		if(r == null)r = RWatch.find("serialNumber=?", p).first();
+		if(r == null)r = RWatch.find("nickname=?", p).first();
+		if(r == null)renderFail("error_rwatch_not_exist");
+		try {
+			boolean s = SendSMS.sendMsg(new String[]{r.m_number}, msg+"");
+			if(!s){
+				play.Logger.error("sendMsg: result="+s+" PNumber="+r.m_number);
+				renderFail("发送短信失败");
+			}
+		} catch (Exception e) {
+			play.Logger.error("sendMsg: PNumber="+r.m_number);
+			play.Logger.error(e.getMessage());
+			renderFail("发送短信失败");
 		}
 		renderText("OK");
 	}
@@ -476,14 +503,15 @@ public class Master extends Controller {
 	 * @param z
 	 */
 	public static void setRWatch(String imei, String channel, String w_type,
-			String nickname, String w_number, String guardian_number1, String sn, String guardian_number2, 
-			String guardian_number3, String guardian_number4, Long rId, String whiteList,String z) {
+			String nickname, String w_number, String sn, String guardian_number1, String guardian_number2, 
+			String guardian_number3, String guardian_number4, String name_number1, String name_number2, 
+			String name_number3, String name_number4, Long rId, String whiteList,String production,Integer mode, String z) {
 		RWatch r = null;
 		if(!StringUtil.isEmpty(sn)){
 			r = RWatch.find("bySerialNumber", sn).first();
 		}
 		if(rId != null){
-			r = RWatch.findById(rId);
+			r = RWatch.find("id=?", rId).first();
 			Session s = Session.find("bySessionID",z).first();
 			if(s == null)renderFail("error_session_expired");
 		}
@@ -518,10 +546,29 @@ public class Master extends Controller {
 		}
 		if (!StringUtil.isEmpty(guardian_number4)){
 			r.guardian_number4 = guardian_number1;
-		}	
+		}
+		if (!StringUtil.isEmpty(name_number1)){
+			r.name_number1 = name_number1;
+		}
+		if (!StringUtil.isEmpty(name_number2)){
+			r.name_number2 = name_number2;
+		}
+		if (!StringUtil.isEmpty(name_number3)){
+			r.name_number3 = name_number3;
+		}
+		if (!StringUtil.isEmpty(name_number4)){
+			r.name_number4 = name_number4;
+		}
 		if (!StringUtil.isEmpty(whiteList)){
 			if(whiteList.split(",").length < 0)renderFail("error_parameter_formate");
 			r.whiteList = whiteList;
+		}
+		if (!StringUtil.isEmpty(production)){
+			Production p = Production.find("p_name=?", production).first();
+			if(p!=null)r.production = p;
+		}
+		if (mode != null){
+			r.mode = mode;
 		}
 		r._save();
 		JSONObject results = initResultJSON();
@@ -541,7 +588,15 @@ public class Master extends Controller {
 		}
 
 		List<RWatch> rwatchs = RWatch.find("bySerialNumber", sn).fetch();
-		if(rwatchs.size() !=1 )renderFail("error_rwatch_not_exist");
+		if(rwatchs.size() !=1 ){
+			SN s = SN.find("bySn", sn).first();
+			if(s != null){
+				JSONObject results = initResultJSON();
+				results.put("timestamp",new Date().getTime()+"");
+				renderSuccess(results);
+			}
+			renderFail("error_rwatch_not_exist");
+		}
 		
 		JSONObject results = initResultJSON();
 		JSONObject data = initResultJSON();
@@ -552,20 +607,37 @@ public class Master extends Controller {
 				data.put("m_number", r.m_number);
 				data.put("nickname", r.nickname);
 				data.put("guardian_number1", r.guardian_number1);
+				data.put("name_number1", r.name_number1);
 				data.put("guardian_number2", r.guardian_number2);
+				data.put("name_number2", r.name_number2);
 				data.put("guardian_number3", r.guardian_number3);
+				data.put("name_number3", r.name_number3);
 				data.put("guardian_number4", r.guardian_number4);
+				data.put("name_number4", r.name_number4);
 				data.put("bindDate", DateUtil.reverseDate(r.bindDate,3));
-				data.put("production", r.production.p_name);
-				data.put("sn", r.serialNumber);
-				String[] wList = r.whiteList.split(",");
-				if(wList.length > 0){
-					JSONArray d = initResultJSONArray();
-					for(String s : wList){
-						d.add(s);
-					}
-					data.put("whiteList", d);
+				if(r.production != null){
+					data.put("production", r.production.p_name);
 				}
+				if(r.mode == null || r.mode == 0){
+					data.put("mode", "180");
+				}else{
+					data.put("mode", r.mode+"");
+				}
+				data.put("sn", r.serialNumber);
+				if(r.whiteList != null){
+					String[] wList = r.whiteList.split(",");
+					if(wList.length > 0){
+						JSONArray d = initResultJSONArray();
+						for(String s : wList){
+							JSONObject wl = initResultJSON();
+							String[] wll = s.split(":");
+							wl.put(wll[0], wll[1]);
+							d.add(wl);
+						}
+						data.put("whiteList", d);
+					}
+				}
+				
 			}
 		}
 		results.put("list", data);
@@ -607,15 +679,31 @@ public class Master extends Controller {
 				data.put("guardian_number3", r.guardian_number3);
 				data.put("guardian_number4", r.guardian_number4);
 				data.put("bindDate", DateUtil.reverseDate(r.bindDate,3));
-				data.put("production", r.production.p_name);
+				if(r.mode == null || r.mode == 0){
+					data.put("mode", "180");
+				}else{
+					data.put("mode", r.mode+"");
+				}
+				
+				if(r.production != null){
+					data.put("production", r.production.p_name);
+				}
 				data.put("sn", r.serialNumber);
-				ElectronicFence ef = ElectronicFence.find("byRWatch", r).first();
-				if(ef != null){
-					data.put("electronicFence_lat", ef.lat);
-					data.put("electronicFence_lon", ef.lon);
-					data.put("electronicFence_radius", ef.radius);
-					data.put("electronicFence_datetime", DateUtil.reverseDate(ef.dateTime,3));
-					data.put("electronicFence_status", ef.on);
+				List<ElectronicFence> lef = ElectronicFence.find("byRWatch", r).fetch();
+				if(lef.size() > 0){
+					lef = ElectronicFence.find("byRWatch", r).fetch();
+					JSONArray arrayef = initResultJSONArray();
+					for(ElectronicFence ef:lef){
+						JSONObject subef = initResultJSON();
+						subef.put("electronicFence_lat", ef.lat);
+						subef.put("electronicFence_lon", ef.lon);
+						subef.put("electronicFence_radius", ef.radius);
+						subef.put("electronicFence_datetime", DateUtil.reverseDate(ef.dateTime,3));
+						subef.put("electronicFence_status", ef.on);
+						subef.put("electronicFence_num", ef.num);
+						arrayef.add(subef);
+					}
+					data.put("electronicFence", arrayef);
 				}
 				datalist.add(data);
 			}
@@ -648,8 +736,7 @@ public class Master extends Controller {
 		
 		RWatch r = null;
 		Production p = null;
-		BSLocation bsl = null;
-		ElectronicFence ef = null;
+		List<ElectronicFence> lef = null;
 		String tmpStr = null;
 		try {
 			tmpStr = new String(Coder.decryptBASE64(datas));
@@ -688,40 +775,87 @@ public class Master extends Controller {
 			String status  = dataArray[10];
 			int mcc = Integer.parseInt(dataArray[11]);
 			int mnc = Integer.parseInt(dataArray[12]);
-			int cellid = Integer.parseInt(dataArray[13]);
-			int lac = Integer.parseInt(dataArray[14]);
+			
+			int cellid1 = Integer.parseInt(dataArray[13]);
+			int lac1 = Integer.parseInt(dataArray[14]);
 			String signal1 = dataArray[15];
 			
+			int cellid2 = Integer.parseInt(dataArray[16]);
+			int lac2 = Integer.parseInt(dataArray[17]);
+			String signal2 = dataArray[18];
+			
+			int cellid3 = Integer.parseInt(dataArray[19]);
+			int lac3 = Integer.parseInt(dataArray[20]);
+			String signal3 = dataArray[21];
+			
+			int cellid4 = Integer.parseInt(dataArray[22]);
+			int lac4 = Integer.parseInt(dataArray[23]);
+			String signal4 = dataArray[24];
+			
+			int cellid5 = Integer.parseInt(dataArray[25]);
+			int lac5 = Integer.parseInt(dataArray[26]);
+			String signal5 = dataArray[27];
+			
+			int cellid6 = Integer.parseInt(dataArray[28]);
+			int lac6 = Integer.parseInt(dataArray[29]);
+			String signal6 = dataArray[30];
+			
+			int ta  = Integer.parseInt(dataArray[31]);
+			
 			l.dateTime = datetime;
-			l.latitude = latitude;
 			l.latitudeFlag = latitudeFlag;
-			l.longitude = longitude;
 			l.longitudeFlag = longitudeFlag;
 			l.speed = speed;
 			l.direction = direction;
 			l.status = status;
-			l.mcc = mcc;
-			l.mnc = mnc;
-			l.lac = lac;
-			l.cellid = cellid;
-			bsl = BSLocation.find("mcc=? and mnc=? and lac=? and cellid=?", mcc,mnc,lac,cellid).first();
-			if(bsl != null && bsl.isPersistent()){
-				l.cell_accuracy = bsl.cell_accuracy;
-				l.cell_coordinateType = bsl.cell_coordinateType;
-				l.cell_latitude = bsl.latitude;
-				l.cell_longitude = bsl.longitude;
+
+			double tmpLatitude;
+			double tmpLonitude;
+			
+			if(BigDecimal.valueOf(latitude).compareTo(BigDecimal.valueOf(0)) == 0 && BigDecimal.valueOf(longitude).compareTo(BigDecimal.valueOf(0)) == 0){
+				String path = "http://minigps.net/as?x="+Integer.toHexString(mcc)+"-"+Integer.toHexString(mnc)+"-"+
+			Integer.toHexString(lac1)+"-"+Integer.toHexString(cellid1)+"-"+signal1+"-"+
+						Integer.toHexString(lac2)+"-"+Integer.toHexString(cellid2)+"-"+signal2+"-"+
+			Integer.toHexString(lac3)+"-"+Integer.toHexString(cellid3)+"-"+signal3+"-"+
+						Integer.toHexString(lac4)+"-"+Integer.toHexString(cellid4)+"-"+signal4+"-"+
+			Integer.toHexString(lac5)+"-"+Integer.toHexString(cellid5)+"-"+signal5+"-"+
+						Integer.toHexString(lac6)+"-"+Integer.toHexString(cellid6)+"-"+signal6+
+			"&p=1&ta="+ta+"&needaddress=0";
+				try {
+					JSONObject json = HttpRequestSend.sendRequestGet(path);
+					if(json.getInt("Status") == 0){
+						l.cell_latitude = json.getDouble("Lat");
+						l.cell_longitude = json.getDouble("Lon");
+					}
+				} catch (Exception e) {
+					play.Logger.info("BS error paht="+path+" info:"+mcc+"-"+mnc+"-"+cellid1+"-"+lac1+"-"+signal1+"-"+cellid2+"-"+lac2+"-"+signal2+"-"+cellid3+"-"+lac3+"-"+signal3+
+							"-"+cellid4+"-"+lac4+"-"+signal4+"-"+cellid5+"-"+lac5+"-"+signal5+"-"+cellid6+"-"+lac6+"-"+signal6);
+					e.printStackTrace();
+				}
+				l.longitude = 0;
+				l.latitude = 0;
+				tmpLatitude = l.cell_latitude;
+				tmpLonitude = l.cell_longitude;
+			}else{
+				l.longitude = longitude;
+				l.latitude = latitude;
+				l.cell_longitude = 0;
+				l.cell_latitude = 0;
+				tmpLatitude = l.latitude;
+				tmpLonitude = l.longitude;
 			}
-			l.signal1 = signal1;
+			l.ta = ta;
 			l.receivedTime = new Date();
 			
-			if(ef == null)ef = ElectronicFence.find("byRWatch", r).first();
-			if(ef != null){
-				if(ef.on == 0)l.valid = 0;
-				else if(ef.on == 1){
-					if(new BigDecimal(StringUtil.distanceBetween(latitude, longitude, ef.lat, ef.lon)).compareTo(new BigDecimal(ef.radius)) > 0){
-						l.valid = 2;
-					}else{
-						l.valid = 1;
+			if(lef == null){
+				lef = ElectronicFence.find("byRWatch", r).fetch();
+				for(ElectronicFence ef:lef){
+					if(ef != null){
+						if(ef.on == 1){
+							if(new BigDecimal(StringUtil.distanceBetween(tmpLatitude, tmpLonitude, ef.lat, ef.lon)).compareTo(new BigDecimal(ef.radius)) > 0){
+								l.valid = 2;
+							}
+						}
 					}
 				}
 			}
@@ -751,7 +885,10 @@ public class Master extends Controller {
 		if(s == null){
 			renderFail("error_session_expired");
 		}
-		
+		RWatch r = RWatch.find("id=? and c_id=?", rId, s.c.id).first();
+		if(r == null){
+			renderFail("error_rwatch_not_exist");
+		}
 		int begin = 0;
 		if(num == null){
 			num = 100;
@@ -783,6 +920,8 @@ public class Master extends Controller {
 			}
 			
 		} catch (Exception e) {
+			e.printStackTrace();
+			play.Logger.info("getLocation: "+e.getMessage());
 			renderFail("error_dateformat", error_dateformat);
 		}
 		
@@ -798,17 +937,11 @@ public class Master extends Controller {
 				data.put("latitude", l.latitude);
 				data.put("longitude", l.longitude);
 				data.put("cell_latitude", l.cell_latitude);
-				data.put("cell_longitude", l.cell_longitude);
-				data.put("cell_accuracy", l.cell_accuracy);
-				data.put("cell_coordinateType", l.cell_coordinateType);
+				data.put("cell_longitude", l.cell_longitude);;
 				data.put("speed", l.speed);
 				data.put("direction", l.direction);
 				data.put("dateTime", l.dateTime);
 				data.put("status", l.status);
-				data.put("mcc", l.mcc);
-				data.put("mnc", l.mnc);
-				data.put("lac", l.lac);
-				data.put("cellid", l.cellid);
 				data.put("latitudeFlag", l.latitudeFlag);
 				data.put("longitudeFlag", l.longitudeFlag);
 				data.put("waring", l.valid);
@@ -854,21 +987,22 @@ public class Master extends Controller {
 	 * @param radius
 	 * @param z
 	 */
-	public static void setElectronicFence(@Required Long rId, @Required Integer on, Double lon, Double lat, Double radius, @Required String z) {
+	public static void setElectronicFence(@Required Long rId, @Required Integer num, @Required Integer on, Double lon, Double lat, Double radius, @Required String z) {
 		if (Validation.hasErrors()) {
 			renderFail("error_parameter_required");
 		}
 		JSONObject results = initResultJSON();
-		RWatch rWatch = RWatch.findById(rId);
+		RWatch rWatch = RWatch.find("id=?",rId).first();
 		if(rWatch == null)renderFail("error_rwatch_not_exist");
-		ElectronicFence ef = ElectronicFence.find("byRWatch", rWatch).first();
+		if(num > 4)renderFail("error_parameter_required");
+		ElectronicFence ef = ElectronicFence.find("rWatch_id=? and num=?", rWatch,num).first();
 		if (ef == null) {
 			ef = new ElectronicFence();
 			ef.rWatch = rWatch;
 		}
 		ef.dateTime = new Date();
 		ef.on = on;
-		if (on == 0) {
+		if (on == 1) {
 			if (lat != null) {
 				ef.lat = lat;
 			}
@@ -879,6 +1013,7 @@ public class Master extends Controller {
 				ef.radius = radius;
 			}
 		}
+		ef.num = num;
 		ef.save();
 		renderSuccess(results);
 	}

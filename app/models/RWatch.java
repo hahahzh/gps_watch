@@ -28,15 +28,19 @@ public class RWatch extends Model {
 	
 	@Phone
 	public String guardian_number1;
+	public String name_number1;
 	
 	@Phone
 	public String guardian_number2;
+	public String name_number2;
 	
 	@Phone
 	public String guardian_number3;
+	public String name_number3;
 	
 	@Phone
 	public String guardian_number4;
+	public String name_number4;
 	
 	public String nickname;
 	
@@ -47,6 +51,8 @@ public class RWatch extends Model {
 	public String whiteList;
 	
 	public Date bindDate;
+	
+	public Integer mode;
 	
 	//M28 M26
 	@ManyToOne(optional = false, cascade = CascadeType.ALL)

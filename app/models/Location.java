@@ -7,7 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import play.db.jpa.JPA;
+
 import play.db.jpa.Model;
 
 @Entity
@@ -35,16 +35,6 @@ public class Location extends Model{
 	public double cell_longitude;
 	
 	/**
-	 * 基站精度,单位米
-	 */
-	public int cell_accuracy; 
-	/**
-	 * 基站坐标类型
-	 */
-	public int cell_coordinateType;
-	
-	
-	/**
 	 * 速度，单位m/s，保留两位小数
 	 */
 	public double speed;
@@ -67,22 +57,6 @@ public class Location extends Model{
 	public String status;
 
 	/**
-	 * 国家码
-	 */
-	public int mcc;
-	/**
-	 * 移动网号码
-	 */
-	public int mnc;
-	/**
-	 * 位置区域码
-	 */
-	public int lac;
-	/**
-	 * 基站id
-	 */
-	public int cellid;
-	/**
 	 * 位置信息是否有效
      * 1 有效
      * 0 无效
@@ -101,7 +75,7 @@ public class Location extends Model{
 	 */
 	public int longitudeFlag;
 	
-	public String signal1;
+	public int ta;
 
 	@Override
 	public String toString(){

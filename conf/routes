@@ -26,6 +26,7 @@ GET     /                                       Application.index
 *       /c/getRWatchInfo						Master.getRWatchInfo
 *       /c/watchSyncTime						Master.syncTime
 *       /c/insertSerialNumber					Master.insertSN
+*       /c/sendMessage							Master.sendMsg
 
 # Ignore favicon requests
 GET     /favicon.ico                            404

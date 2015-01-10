@@ -7,11 +7,6 @@ import javax.persistence.Table;
 
 import play.db.jpa.Model;
 
-/**
- * 基站信息数据库
- * @author zhaolin
- *
- */
 @Entity
 @Table(name="bs_locations")
 public class BSLocation extends Model{
@@ -23,14 +18,11 @@ public class BSLocation extends Model{
 	 * 移动网号码
 	 */
 	public int mnc;
-	/**
-	 * 位置区域码
-	 */
+	
 	public int lac;
-	/**
-	 * 基站id
-	 */
 	public int cellid;
+	String signal;
+	
 	/**
 	 * 定位器纬度，格式为DD.FFFFFF
 	 */
@@ -47,6 +39,8 @@ public class BSLocation extends Model{
 	 * 坐标类型
 	 */
 	public int cell_coordinateType;
+	
+	public int ta;
 	/**
 	 * 更新时间
 	 */
