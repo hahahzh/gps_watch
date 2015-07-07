@@ -147,3 +147,6 @@ SMSLogs=短信
 content=短信内容
 phoneNos=电话LIST
 updatetime=发送日期
+verification_msg=您的验证码是：%d。请不要把验证码泄露给其他人。
+error_verification_code=验证码获取失败请稍后再试
+error_verification_code_sys=系统繁忙发送失败请再次获取

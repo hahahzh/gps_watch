@@ -128,10 +128,10 @@ public class Master extends Controller {
 		int n = Math.abs(r.nextInt())/10000;
 		
 		try {
-			boolean s = SendSMS.sendMsg(new String[]{m_number}, "您的验证码是：" + n + "。请不要把验证码泄露给其他人。");
+			boolean s = SendSMS.sendMsg(new String[]{m_number}, play.i18n.Messages.get("verification_msg",n));
 			if(!s){
 				play.Logger.error("checkDigit: result="+s+" PNumber="+m_number+" digit="+n);
-				renderText("验证码获取失败请稍后再试");
+				renderText(play.i18n.Messages.get("error_verification_code"));
 			}
 			
 			CheckDigit cd = CheckDigit.find("m=?", m_number).first();
@@ -143,7 +143,7 @@ public class Master extends Controller {
 		} catch (Exception e) {
 			play.Logger.error("checkDigit: PNumber="+m_number+" digit="+n);
 			play.Logger.error(e.getMessage());
-			renderText("系统繁忙发送失败请再次获取");
+			renderText(play.i18n.Messages.get("error_verification_code_sys"));
 		}
 		renderText("OK");
 	}
@@ -576,6 +576,51 @@ public class Master extends Controller {
 	}
 	
 	/**
+	 * 设置儿童手表(定位器)信息
+	 * 
+	 * @param imei
+	 * @param channel
+	 * @param w_type
+	 * @param nickname
+	 * @param w_number
+	 * @param guardian_number1
+	 * @param sn
+	 * @param guardian_number2
+	 * @param guardian_number3
+	 * @param guardian_number4
+	 * @param rId
+	 * @param z
+	 */
+	public static void setRWatch_forIOS(String sn, Long rId, String whiteList, String z) {
+		RWatch r = null;
+		if(!StringUtil.isEmpty(sn)){
+			r = RWatch.find("bySerialNumber", sn).first();
+		}
+		if(rId != null){
+			r = RWatch.find("id=?", rId).first();
+			Session s = Session.find("bySessionID",z).first();
+			if(s == null)renderFail("error_session_expired");
+		}
+		if(r == null){
+			renderFail("error_rwatch_not_exist");
+		}
+		
+		
+		if (!StringUtil.isEmpty(whiteList)){
+			String[] wl = whiteList.split(",");
+			if(wl == null || wl.length == 0)renderFail("error_parameter_formate");
+			for(String wll:wl){
+				if(wll.length() <= 1)renderFail("error_parameter_formate");
+			}
+			if(whiteList.split(",").length < 0)renderFail("error_parameter_formate");
+			r.whiteList = whiteList;
+		}
+		r._save();
+		JSONObject results = initResultJSON();
+		renderSuccess(results);
+	}
+	
+	/**
 	 * 手表获取信息(定位器)
 	 * 
 	 * @param sn
@@ -854,6 +899,7 @@ public class Master extends Controller {
 						if(ef.on == 1){
 							if(new BigDecimal(StringUtil.distanceBetween(tmpLatitude, tmpLonitude, ef.lat, ef.lon)).compareTo(new BigDecimal(ef.radius)) > 0){
 								l.valid = 2;
+								break;
 							}
 						}
 					}
@@ -945,6 +991,7 @@ public class Master extends Controller {
 				data.put("latitudeFlag", l.latitudeFlag);
 				data.put("longitudeFlag", l.longitudeFlag);
 				data.put("waring", l.valid);
+				data.put("sDate", l.receivedTime+"");
 				datalist.add(data);
 			}
 		}
