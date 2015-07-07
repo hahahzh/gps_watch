@@ -49,3 +49,4 @@ IP:115.29.176.128
 新Ecs实例名称kidsgps
 用户名root 密码Oviphone2014
 RDS gpswatch.mysql.rds.aliyuncs.com 用户名oviphonerwatch 密码oviphoneaiday
+RDS gpswatch.mysql.rds.aliyuncs.com 用户名oviphonerwatch 密码Opt2015__

@@ -93,7 +93,7 @@ public class Master extends Controller {
 	public static final int error_parameter_formate = 22;// 格式错误 
 
 	// 存储Session副本
-	private static ThreadLocal<Session> sessionCache = new ThreadLocal<Session>();
+	public static ThreadLocal<Session> sessionCache = new ThreadLocal<Session>();
 	
 	/**
 	 * 校验Session是否过期
@@ -101,7 +101,7 @@ public class Master extends Controller {
 	 * @param sessionID
 	 */
 	@Before(unless={"checkDigit", "register", "login", "sendResetPasswordMail", "update", "download", 
-			"addRWatch", "webBindingWatch", "setRWatch", "receiver", "getRWatchInfo", "syncTime", "insertSN"},priority=1)
+			"addRWatch", "webBindingWatch", "setRWatch", "receiver", "getRWatchInfo", "syncTime", "insertSN", "getRWatchInfo_New"},priority=1)
 	public static void validateSessionID(@Required String z) {
 		
 		Session s = Session.find("bySessionID",z).first();
@@ -591,7 +591,7 @@ public class Master extends Controller {
 	 * @param rId
 	 * @param z
 	 */
-	public static void setRWatch_forIOS(String sn, Long rId, String whiteList, String z) {
+	public static void setRWatch_New(String sn, Long rId, String whiteList, String z) {
 		RWatch r = null;
 		if(!StringUtil.isEmpty(sn)){
 			r = RWatch.find("bySerialNumber", sn).first();
@@ -605,17 +605,35 @@ public class Master extends Controller {
 			renderFail("error_rwatch_not_exist");
 		}
 		
-		
 		if (!StringUtil.isEmpty(whiteList)){
 			String[] wl = whiteList.split(",");
 			if(wl == null || wl.length == 0)renderFail("error_parameter_formate");
 			for(String wll:wl){
 				if(wll.length() <= 1)renderFail("error_parameter_formate");
+				String[] dwl = wll.split(":");
+				if(StringUtil.isEmpty(r.whiteList)){
+					r.whiteList = dwl[1]+":"+dwl[0];
+				}else if(r.whiteList.contains(dwl[1])){
+					String[] rwl = r.whiteList.split(",");
+					r.whiteList = "";
+					for(String rwll:rwl){
+						if(rwll.contains(dwl[1]))continue;
+						else {
+							if(StringUtil.isEmpty(r.whiteList))r.whiteList = rwll;
+							else r.whiteList = r.whiteList+"," + rwll;
+						}
+					}
+					if(StringUtil.isEmpty(r.whiteList)){
+						r.whiteList = dwl[1]+":"+dwl[0];
+					}else{
+						r.whiteList = r.whiteList+","+dwl[1]+":"+dwl[0];
+					}
+				}else{
+					r.whiteList = r.whiteList+","+dwl[1]+":"+dwl[0];
+				}
 			}
-			if(whiteList.split(",").length < 0)renderFail("error_parameter_formate");
-			r.whiteList = whiteList;
+			r._save();
 		}
-		r._save();
 		JSONObject results = initResultJSON();
 		renderSuccess(results);
 	}
@@ -677,6 +695,76 @@ public class Master extends Controller {
 							JSONObject wl = initResultJSON();
 							String[] wll = s.split(":");
 							wl.put(wll[0], wll[1]);
+							d.add(wl);
+						}
+						data.put("whiteList", d);
+					}
+				}
+				
+			}
+		}
+		results.put("list", data);
+		results.put("timestamp",new Date().getTime()+"");
+		renderSuccess(results);
+	}
+	
+	/**
+	 * 手表获取信息(定位器)
+	 * 
+	 * @param sn
+	 */
+	public static void getRWatchInfo_New(@Required String sn) {
+		
+		// 参数验证
+		if (Validation.hasErrors()) {
+			renderFail("error_parameter_required");
+		}
+
+		List<RWatch> rwatchs = RWatch.find("bySerialNumber", sn).fetch();
+		if(rwatchs.size() !=1 ){
+			SN s = SN.find("bySn", sn).first();
+			if(s != null){
+				JSONObject results = initResultJSON();
+				results.put("timestamp",new Date().getTime()+"");
+				renderSuccess(results);
+			}
+			renderFail("error_rwatch_not_exist");
+		}
+		
+		JSONObject results = initResultJSON();
+		JSONObject data = initResultJSON();
+		if (!rwatchs.isEmpty()) {
+			for(RWatch r : rwatchs){
+				data.put("rId", r.id);
+				data.put("imei", r.imei);
+				data.put("m_number", r.m_number);
+				data.put("nickname", r.nickname);
+				data.put("guardian_number1", r.guardian_number1);
+				data.put("name_number1", r.name_number1);
+				data.put("guardian_number2", r.guardian_number2);
+				data.put("name_number2", r.name_number2);
+				data.put("guardian_number3", r.guardian_number3);
+				data.put("name_number3", r.name_number3);
+				data.put("guardian_number4", r.guardian_number4);
+				data.put("name_number4", r.name_number4);
+				data.put("bindDate", DateUtil.reverseDate(r.bindDate,3));
+				if(r.production != null){
+					data.put("production", r.production.p_name);
+				}
+				if(r.mode == null || r.mode == 0){
+					data.put("mode", "180");
+				}else{
+					data.put("mode", r.mode+"");
+				}
+				data.put("sn", r.serialNumber);
+				if(r.whiteList != null){
+					String[] wList = r.whiteList.split(",");
+					if(wList.length > 0){
+						JSONArray d = initResultJSONArray();
+						for(String s : wList){
+							JSONObject wl = initResultJSON();
+							String[] wll = s.split(":");
+							wl.put(wll[1], wll[0]);
 							d.add(wl);
 						}
 						data.put("whiteList", d);
@@ -904,6 +992,9 @@ public class Master extends Controller {
 						}
 					}
 				}
+				if(l.valid != 2)l.valid = 1;
+			}else{
+				l.valid = 0;
 			}
 			l._save();
 		}
@@ -991,7 +1082,7 @@ public class Master extends Controller {
 				data.put("latitudeFlag", l.latitudeFlag);
 				data.put("longitudeFlag", l.longitudeFlag);
 				data.put("waring", l.valid);
-				data.put("sDate", l.receivedTime+"");
+				data.put("sDate", (l.receivedTime+"").replace(".0", ""));
 				datalist.add(data);
 			}
 		}
