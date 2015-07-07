@@ -764,8 +764,10 @@ public class Master extends Controller {
 						for(String s : wList){
 							JSONObject wl = initResultJSON();
 							String[] wll = s.split(":");
-							wl.put(wll[1], wll[0]);
-							d.add(wl);
+							if(wll.length==2){
+								wl.put(wll[1], wll[0]);
+								d.add(wl);
+							}
 						}
 						data.put("whiteList", d);
 					}
