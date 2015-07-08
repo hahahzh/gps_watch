@@ -31,6 +31,8 @@ GET     /                                       Application.index
 *       /c/getInterval							Master.getInterval
 *       /c/watchInfo_new						Master.setRWatch_New
 *       /c/getRWatchInfo_new					Master.getRWatchInfo_New
+*       /c/delWhiteList     					Master.delWhiteList
+*       /c/slam			     					Master.getInstantPosition
 
 *       /w/reg									Application.register
 *       /w/login								Application.login

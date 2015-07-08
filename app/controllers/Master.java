@@ -1301,10 +1301,10 @@ public class Master extends Controller {
 		
 		if (!locations.isEmpty()) {
 			for(Location l : locations){
-				if(	(new BigDecimal(l.latitude).compareTo(new BigDecimal(0.0))!=0 && 
-						new BigDecimal(l.longitude).compareTo(new BigDecimal(0.0))!=0 && 
-						new BigDecimal(l.cell_latitude).compareTo(new BigDecimal(0.0))!=0 && 
-						new BigDecimal(l.cell_longitude).compareTo(new BigDecimal(0.0))!=0)){
+				if(	((new BigDecimal(l.latitude).compareTo(new BigDecimal(0.0))!=0 && 
+						new BigDecimal(l.longitude).compareTo(new BigDecimal(0.0))!=0) || 
+						(new BigDecimal(l.cell_latitude).compareTo(new BigDecimal(0.0))!=0 && 
+						new BigDecimal(l.cell_longitude).compareTo(new BigDecimal(0.0))!=0))){
 					JSONObject data = initResultJSON();
 					data.put("id", l.id);
 					data.put("rwatchId", l.rwatch.id);
@@ -1358,23 +1358,22 @@ public class Master extends Controller {
 			if(now - l.receivedTime.getTime() < 180000 && 
 					((new BigDecimal(l.latitude).compareTo(new BigDecimal(0.0))!=0 && new BigDecimal(l.longitude).compareTo(new BigDecimal(0.0))!=0)
 					|| (new BigDecimal(l.cell_latitude).compareTo(new BigDecimal(0.0))!=0 && new BigDecimal(l.cell_longitude).compareTo(new BigDecimal(0.0))!=0))){
-				JSONObject data = initResultJSON();
-				data.put("id", l.id);
-				data.put("rwatchId", l.rwatch.id);
-				data.put("dateTime", l.dateTime);
-				data.put("latitude", l.latitude);
-				data.put("longitude", l.longitude);
-				data.put("cell_latitude", l.cell_latitude);
-				data.put("cell_longitude", l.cell_longitude);;
-				data.put("speed", l.speed);
-				data.put("direction", l.direction);
-				data.put("dateTime", l.dateTime);
-				data.put("status", l.status);
-				data.put("latitudeFlag", l.latitudeFlag);
-				data.put("longitudeFlag", l.longitudeFlag);
-				data.put("waring", l.valid);
-				data.put("sDate", (l.receivedTime+"").replace(".0", ""));
-				results.put("position", data);
+				results.put("id", l.id);
+				results.put("rwatchId", l.rwatch.id);
+				results.put("dateTime", l.dateTime);
+				results.put("latitude", l.latitude);
+				results.put("longitude", l.longitude);
+				results.put("cell_latitude", l.cell_latitude);
+				results.put("cell_longitude", l.cell_longitude);;
+				results.put("speed", l.speed);
+				results.put("direction", l.direction);
+				results.put("dateTime", l.dateTime);
+				results.put("status", l.status);
+				results.put("latitudeFlag", l.latitudeFlag);
+				results.put("longitudeFlag", l.longitudeFlag);
+				results.put("waring", l.valid);
+				results.put("sDate", (l.receivedTime+"").replace(".0", ""));
+				break;
 			}
 		}
 		renderSuccess(results);
@@ -1550,6 +1549,9 @@ public class Master extends Controller {
 		if(SN.count("sn=?", sn) < 1){
 			renderFail("error_rwatch_not_exist");
 		}
+		RWatch r = RWatch.find("byM_number", w_number).first();
+		if(r!=null && r.c != null)renderFail("error_rwatch_bind_full");
+		
 		Customer c = Customer.find("byM_number", m_number).first();
 		if(c == null){
 			renderFail("error_userid_not_exist");
