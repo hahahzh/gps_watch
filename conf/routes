@@ -27,8 +27,20 @@ GET     /                                       Application.index
 *       /c/watchSyncTime						Master.syncTime
 *       /c/insertSerialNumber					Master.insertSN
 *       /c/sendMessage							Master.sendMsg
+*       /c/setInterval							Master.setInterval
+*       /c/getInterval							Master.getInterval
 *       /c/watchInfo_new						Master.setRWatch_New
 *       /c/getRWatchInfo_new					Master.getRWatchInfo_New
+
+*       /w/reg									Application.register
+*       /w/login								Application.login
+*       /w/fenceList            				Application.getElectronicFenceList
+*       /w/setNodist							Application.setNodist
+*       /w/getNodistList						Application.getNodistList
+*       /w/getWhitePhoneList					Application.getWhitePhoneList
+*       /w/setWhitePhone						Application.setWhitePhone
+*       /w/delWhitePhone						Application.delWhitePhone
+*       /w/shutdown								Application.shutdown
 
 # Ignore favicon requests
 GET     /favicon.ico                            404

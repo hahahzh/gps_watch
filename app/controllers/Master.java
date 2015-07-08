@@ -27,6 +27,7 @@ import models.Production;
 import models.RWatch;
 import models.SN;
 import models.Session;
+import models.TimeInterval;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import play.Play;
@@ -35,6 +36,7 @@ import play.data.validation.Validation;
 import play.db.DB;
 import play.db.Model;
 import play.db.jpa.Blob;
+import play.db.jpa.JPA;
 import play.i18n.Messages;
 import play.mvc.Before;
 import play.mvc.Controller;
@@ -323,8 +325,8 @@ public class Master extends Controller {
 		Session s = sessionCache.get();
 		if(s != null && s.id != 1 && s.id != 2){
 			s.delete();
-			s.sessionID = "";
-			s.save();
+//			s.sessionID = "";
+//			s.save();
 		}
 		renderSuccess(initResultJSON());
 	}
@@ -339,38 +341,65 @@ public class Master extends Controller {
 	public static void sendResetPasswordMail(@Required String m)
 			throws UnsupportedEncodingException {
 
-		if (Validation.hasErrors()) {
-			renderFail("error_parameter_required");
-		}
+            if (Validation.hasErrors()) {
+                    renderFail("error_parameter_required");
+            }
 
-		Customer c = Customer.find("byM_number", m).first();
-		if (c == null) {
-			c = Customer.find("byEmail", m).first();
-			if(c == null)c = Customer.find("byWeixin", m).first();
-			if(c == null)renderFail("error_username_not_exist");
-		}
-		
-		SendMail mail = new SendMail(
-				Play.configuration.getProperty("mail.smtp.host"),
-				Play.configuration.getProperty("mail.smtp.user"),
-				Play.configuration.getProperty("mail.smtp.pass"));
+            Customer c = Customer.find("byM_number", m).first();
+            if (c == null) {
+                c = Customer.find("byWeixin", m).first();
+                if(c == null){
+                	List<Customer> tmp = Customer.find("byEmail", m).fetch();
+                	if(tmp.size() == 0)renderFail("error_username_not_exist");
+                	SendMail mail = new SendMail(
+                            Play.configuration.getProperty("mail.smtp.host"),
+                            Play.configuration.getProperty("mail.smtp.user"),
+                            Play.configuration.getProperty("mail.smtp.pass"));
 
-		mail.setSubject(Messages.get("mail_resetpassword_title"));
-		mail.setBodyAsText("phone:"+c.m_number+"password:"+c.pwd);
+                	mail.setSubject(Messages.get("mail_resetpassword_title"));
+                	String text = "";
+                	for(Customer tmpC : tmp){
+                		text += "phone:"+tmpC.m_number+"password:"+tmpC.pwd+"\n";
+                	}
+                	mail.setBodyAsText(text);
 
-		String nick = Messages.get("mail_show_name");
-		try {
-			nick = javax.mail.internet.MimeUtility.encodeText(nick);
-			mail.setFrom(new InternetAddress(nick + " <"
-					+ Play.configuration.getProperty("mail.smtp.from") + ">")
-					.toString());
-			mail.setTo(c.email);
-			mail.send();
-		} catch (Exception e) {
-			renderFail("error_mail_resetpassword");
-		}
-		renderSuccess(initResultJSON());
-	}
+	            String nick = Messages.get("mail_show_name");
+	            try {
+	                    nick = javax.mail.internet.MimeUtility.encodeText(nick);
+	                    mail.setFrom(new InternetAddress(nick + " <"
+	                                    + Play.configuration.getProperty("mail.smtp.from") + ">")
+	                                    .toString());
+	                    mail.setTo(m);
+	                    mail.send();
+	            } catch (Exception e) {
+	                    renderFail("error_mail_resetpassword");
+	            }
+	            renderSuccess(initResultJSON());
+                	
+                }
+            }
+
+            SendMail mail = new SendMail(
+                            Play.configuration.getProperty("mail.smtp.host"),
+                            Play.configuration.getProperty("mail.smtp.user"),
+                            Play.configuration.getProperty("mail.smtp.pass"));
+
+            mail.setSubject(Messages.get("mail_resetpassword_title"));
+            mail.setBodyAsText("phone:"+c.m_number+"password:"+c.pwd);
+
+            String nick = Messages.get("mail_show_name");
+            try {
+                    nick = javax.mail.internet.MimeUtility.encodeText(nick);
+                    mail.setFrom(new InternetAddress(nick + " <"
+                                    + Play.configuration.getProperty("mail.smtp.from") + ">")
+                                    .toString());
+                    mail.setTo(c.email);
+                    mail.send();
+            } catch (Exception e) {
+                    renderFail("error_mail_resetpassword");
+            }
+            renderSuccess(initResultJSON());
+    }
 
 	/**
 	 * 更新用户信息
@@ -505,7 +534,8 @@ public class Master extends Controller {
 	public static void setRWatch(String imei, String channel, String w_type,
 			String nickname, String w_number, String sn, String guardian_number1, String guardian_number2, 
 			String guardian_number3, String guardian_number4, String name_number1, String name_number2, 
-			String name_number3, String name_number4, Long rId, String whiteList,String production,Integer mode, String z) {
+			String name_number3, String name_number4, Long rId, String production, Integer mode,
+			String whiteList, Boolean remind_open_close, Boolean remind_low_power, String z) {
 		RWatch r = null;
 		if(!StringUtil.isEmpty(sn)){
 			r = RWatch.find("bySerialNumber", sn).first();
@@ -539,13 +569,13 @@ public class Master extends Controller {
 			r.guardian_number1 = guardian_number1;
 		}
 		if (!StringUtil.isEmpty(guardian_number2)){
-			r.guardian_number2 = guardian_number1;
+			r.guardian_number2 = guardian_number2;
 		}
 		if (!StringUtil.isEmpty(guardian_number3)){
-			r.guardian_number3 = guardian_number1;
+			r.guardian_number3 = guardian_number3;
 		}
 		if (!StringUtil.isEmpty(guardian_number4)){
-			r.guardian_number4 = guardian_number1;
+			r.guardian_number4 = guardian_number4;
 		}
 		if (!StringUtil.isEmpty(name_number1)){
 			r.name_number1 = name_number1;
@@ -559,10 +589,17 @@ public class Master extends Controller {
 		if (!StringUtil.isEmpty(name_number4)){
 			r.name_number4 = name_number4;
 		}
+		if (null != remind_open_close){
+			r.remind_open_close = remind_open_close;
+		}
+		if (null != remind_low_power){
+			r.remind_low_power = remind_low_power;
+		}
 		if (!StringUtil.isEmpty(whiteList)){
 			if(whiteList.split(",").length < 0)renderFail("error_parameter_formate");
 			r.whiteList = whiteList;
 		}
+
 		if (!StringUtil.isEmpty(production)){
 			Production p = Production.find("p_name=?", production).first();
 			if(p!=null)r.production = p;
@@ -638,6 +675,58 @@ public class Master extends Controller {
 		renderSuccess(results);
 	}
 	
+
+	/**
+	 * 删除白名单
+	 * 
+	 * @param sn
+	 * @param rId
+	 * @param whiteList
+	 * @param z
+	 */
+	public static void delWhiteList(String sn, Long rId, @Required String whiteList, String z) {
+		
+		if (Validation.hasErrors()) {
+			renderFail("error_parameter_required");
+		}
+		
+		RWatch r = null;
+		if(!StringUtil.isEmpty(sn)){
+			r = RWatch.find("bySerialNumber", sn).first();
+		}
+		if(rId != null){
+			r = RWatch.find("id=?", rId).first();
+			Session s = Session.find("bySessionID",z).first();
+			if(s == null)renderFail("error_session_expired");
+		}
+		if(r == null){
+			renderFail("error_rwatch_not_exist");
+		}
+		
+		String[] wl = whiteList.split(",");
+		if(wl == null || wl.length == 0)renderFail("error_parameter_formate");
+		for(String wll:wl){
+			if(wll.length() <= 1)renderFail("error_parameter_formate");
+			String[] dwl = wll.split(":");
+			if(StringUtil.isEmpty(r.whiteList)){
+				break;
+			}else if(r.whiteList.contains(dwl[1])){
+				String[] rwl = r.whiteList.split(",");
+				r.whiteList = "";
+				for(String rwll:rwl){
+					if(rwll.contains(dwl[1]))continue;
+					else {
+						if(StringUtil.isEmpty(r.whiteList))r.whiteList = rwll;
+						else r.whiteList = r.whiteList+"," + rwll;
+					}
+				}
+			}
+		}
+		r._save();
+		JSONObject results = initResultJSON();
+		renderSuccess(results);
+	}
+	
 	/**
 	 * 手表获取信息(定位器)
 	 * 
@@ -677,12 +766,14 @@ public class Master extends Controller {
 				data.put("name_number3", r.name_number3);
 				data.put("guardian_number4", r.guardian_number4);
 				data.put("name_number4", r.name_number4);
+				data.put("remind_low_power", r.remind_low_power);
+				data.put("remind_open_close", r.remind_open_close);
 				data.put("bindDate", DateUtil.reverseDate(r.bindDate,3));
 				if(r.production != null){
 					data.put("production", r.production.p_name);
 				}
 				if(r.mode == null || r.mode == 0){
-					data.put("mode", "180");
+					data.put("mode", "900");
 				}else{
 					data.put("mode", r.mode+"");
 				}
@@ -693,14 +784,29 @@ public class Master extends Controller {
 						JSONArray d = initResultJSONArray();
 						for(String s : wList){
 							JSONObject wl = initResultJSON();
-							String[] wll = s.split(":");
-							wl.put(wll[0], wll[1]);
-							d.add(wl);
+							if(!s.equals(":")){
+								String[] wll = s.split(":");
+            					if(wll != null && wll.length!=2){
+            						wl.put(wll[0], wll[1]);
+            						d.add(wl);
+            					}
+                            }
 						}
 						data.put("whiteList", d);
 					}
 				}
-				
+				List<TimeInterval> tis = TimeInterval.find("rWatch=?", r).fetch();
+				JSONArray datalist = initResultJSONArray();
+				for (TimeInterval ti:tis) {
+					JSONObject subdata = initResultJSON();
+					subdata.put("on", ti.on+"");
+					subdata.put("startTime", ti.startTime);
+					subdata.put("endTime", ti.endTime);
+					subdata.put("interval", ti.interval+"");
+					subdata.put("type", ti.type+"");
+					datalist.add(subdata);
+				}
+				data.put("time_interval", datalist);
 			}
 		}
 		results.put("list", data);
@@ -779,15 +885,83 @@ public class Master extends Controller {
 		results.put("timestamp",new Date().getTime()+"");
 		renderSuccess(results);
 	}
-	
+
 	/**
 	 * 获取当前用户绑定的所有儿童手表(定位器)
 	 * 
 	 * @param z
 	 */
+	public static void getBindRWatchList(@Required String z) {
+
+		// ....
+		if (Validation.hasErrors()) {
+			renderFail("error_parameter_required");
+		}
+
+		Session s = sessionCache.get();
+		if(s == null){
+			renderFail("error_session_expired");
+		}
+
+		Customer c = s.c;
+		play.Logger.debug("test:%s;", c.m_number);
+		List<RWatch> rwatchs = RWatch.find("c_id=? and guardian_number1=?", c.id, c.m_number).fetch();
+
+		JSONObject results = initResultJSON();
+		JSONArray datalist = initResultJSONArray();
+		if (!rwatchs.isEmpty()) {
+			for(RWatch r : rwatchs){
+				JSONObject data = initResultJSON();
+				data.put("rId", r.id);
+				data.put("imei", r.imei);
+				data.put("m_number", r.m_number);
+				data.put("nickname", r.nickname);
+				data.put("guardian_number1", r.guardian_number1);
+				data.put("guardian_number2", r.guardian_number2);
+				data.put("guardian_number3", r.guardian_number3);
+				data.put("guardian_number4", r.guardian_number4);
+				data.put("bindDate", DateUtil.reverseDate(r.bindDate,3));
+				if(r.mode == null || r.mode == 0){
+					data.put("mode", "180");
+				}else{
+					data.put("mode", r.mode+"");
+				}
+
+				if(r.production != null){
+					data.put("production", r.production.p_name);
+				}
+				data.put("sn", r.serialNumber);
+				List<ElectronicFence> lef = ElectronicFence.find("byRWatch", r).fetch();
+				if(lef.size() > 0){
+					lef = ElectronicFence.find("byRWatch", r).fetch();
+					JSONArray arrayef = initResultJSONArray();
+					for(ElectronicFence ef:lef){
+						JSONObject subef = initResultJSON();
+						subef.put("electronicFence_lat", ef.lat);
+						subef.put("electronicFence_lon", ef.lon);
+						subef.put("electronicFence_radius", ef.radius);
+						subef.put("electronicFence_datetime", DateUtil.reverseDate(ef.dateTime,3));
+						subef.put("electronicFence_status", ef.on);
+						subef.put("electronicFence_num", ef.num);
+						arrayef.add(subef);
+					}
+					data.put("electronicFence", arrayef);
+				}
+				datalist.add(data);
+			}
+		}
+		results.put("list", datalist);
+		renderSuccess(results);
+	}
+
+	/**
+	 * ...............(...)
+	 * 
+	 * @param z
+	 */
 	public static void getRWatchList(@Required String z) {
 		
-		// 参数验证
+		// ....
 		if (Validation.hasErrors()) {
 			renderFail("error_parameter_required");
 		}
@@ -815,7 +989,7 @@ public class Master extends Controller {
 				data.put("guardian_number4", r.guardian_number4);
 				data.put("bindDate", DateUtil.reverseDate(r.bindDate,3));
 				if(r.mode == null || r.mode == 0){
-					data.put("mode", "180");
+					data.put("mode", "900");
 				}else{
 					data.put("mode", r.mode+"");
 				}
@@ -875,26 +1049,26 @@ public class Master extends Controller {
 		String tmpStr = null;
 		try {
 			tmpStr = new String(Coder.decryptBASE64(datas));
-			if(StringUtil.isEmpty(tmpStr))renderText(3);
+			if(StringUtil.isEmpty(tmpStr))renderFail("error_parameter_required");
 		} catch (Exception e) {
 			e.printStackTrace();
-			renderText(3);
+			renderFail("error_parameter_required");
 		}
 		String[] tmpArray = tmpStr.split(",");
 		int length = tmpArray.length==0?1:tmpArray.length;
-		
+
 		for(int j=0;j<length;j++){
 			String[] dataArray = tmpArray[j].split("\\|");
 			String sn = dataArray[1];
 			if(r == null){
 				r = RWatch.find("bySerialNumber", sn).first();
-				if(r == null || !r.isPersistent())renderText(1);
+				if(r == null || !r.isPersistent())renderFail("error_parameter_required");
 			}
 			
 			String rt = dataArray[2];
 			if(p == null){
 				p = Production.find("byP_name", rt).first();
-				if(p == null || !p.isPersistent())renderText(2);
+				if(p == null || !p.isPersistent())renderFail("error_parameter_required");
 			}
 			
 			Location l = new Location();
@@ -949,18 +1123,20 @@ public class Master extends Controller {
 			
 			if(BigDecimal.valueOf(latitude).compareTo(BigDecimal.valueOf(0)) == 0 && BigDecimal.valueOf(longitude).compareTo(BigDecimal.valueOf(0)) == 0){
 				String path = "http://minigps.net/as?x="+Integer.toHexString(mcc)+"-"+Integer.toHexString(mnc)+"-"+
-			Integer.toHexString(lac1)+"-"+Integer.toHexString(cellid1)+"-"+signal1+"-"+
-						Integer.toHexString(lac2)+"-"+Integer.toHexString(cellid2)+"-"+signal2+"-"+
-			Integer.toHexString(lac3)+"-"+Integer.toHexString(cellid3)+"-"+signal3+"-"+
-						Integer.toHexString(lac4)+"-"+Integer.toHexString(cellid4)+"-"+signal4+"-"+
-			Integer.toHexString(lac5)+"-"+Integer.toHexString(cellid5)+"-"+signal5+"-"+
-						Integer.toHexString(lac6)+"-"+Integer.toHexString(cellid6)+"-"+signal6+
-			"&p=1&ta="+ta+"&needaddress=0";
+			Integer.toHexString(lac1)+"-"+Integer.toHexString(cellid1)+"-"+Integer.toHexString(Integer.parseInt(signal1))+"-"+
+						Integer.toHexString(lac2)+"-"+Integer.toHexString(cellid2)+"-"+Integer.toHexString(Integer.parseInt(signal2))+"-"+
+			Integer.toHexString(lac3)+"-"+Integer.toHexString(cellid3)+"-"+Integer.toHexString(Integer.parseInt(signal3))+"-"+
+						Integer.toHexString(lac4)+"-"+Integer.toHexString(cellid4)+"-"+Integer.toHexString(Integer.parseInt(signal4))+"-"+
+			Integer.toHexString(lac5)+"-"+Integer.toHexString(cellid5)+"-"+Integer.toHexString(Integer.parseInt(signal5))+"-"+
+						Integer.toHexString(lac6)+"-"+Integer.toHexString(cellid6)+"-"+Integer.toHexString(Integer.parseInt(signal6))+
+			"&p=1&mt=0&ta="+ta+"&needaddress=0";
 				try {
+					play.Logger.info("path="+path+" info:"+mcc+"-"+mnc+"-"+cellid1+"-"+lac1+"-"+signal1+"-"+cellid2+"-"+lac2+"-"+signal2+"-"+cellid3+"-"+lac3+"-"+signal3+
+							"-"+cellid4+"-"+lac4+"-"+signal4+"-"+cellid5+"-"+lac5+"-"+signal5+"-"+cellid6+"-"+lac6+"-"+signal6);
 					JSONObject json = HttpRequestSend.sendRequestGet(path);
-					if(json.getInt("Status") == 0){
-						l.cell_latitude = json.getDouble("Lat");
-						l.cell_longitude = json.getDouble("Lon");
+					if(json.getInt("status") == 0){
+						l.cell_latitude = json.getDouble("lat");
+						l.cell_longitude = json.getDouble("lon");
 					}
 				} catch (Exception e) {
 					play.Logger.info("BS error paht="+path+" info:"+mcc+"-"+mnc+"-"+cellid1+"-"+lac1+"-"+signal1+"-"+cellid2+"-"+lac2+"-"+signal2+"-"+cellid3+"-"+lac3+"-"+signal3+
@@ -989,18 +1165,74 @@ public class Master extends Controller {
 						if(ef.on == 1){
 							if(new BigDecimal(StringUtil.distanceBetween(tmpLatitude, tmpLonitude, ef.lat, ef.lon)).compareTo(new BigDecimal(ef.radius)) > 0){
 								l.valid = 2;
-								break;
 							}
 						}
 					}
+					if(l.valid != 2)l.valid = 1;
 				}
-				if(l.valid != 2)l.valid = 1;
 			}else{
 				l.valid = 0;
 			}
 			l._save();
 		}
-		renderText(0);
+		JSONObject results = initResultJSON();
+		JSONObject data = initResultJSON();
+	
+				data.put("rId", r.id);
+				data.put("imei", r.imei);
+				data.put("m_number", r.m_number);
+				data.put("nickname", r.nickname);
+				data.put("guardian_number1", r.guardian_number1);
+				data.put("name_number1", r.name_number1);
+				data.put("guardian_number2", r.guardian_number2);
+				data.put("name_number2", r.name_number2);
+				data.put("guardian_number3", r.guardian_number3);
+				data.put("name_number3", r.name_number3);
+				data.put("guardian_number4", r.guardian_number4);
+				data.put("name_number4", r.name_number4);
+				data.put("bindDate", DateUtil.reverseDate(r.bindDate,3));
+				if(r.production != null){
+					data.put("production", r.production.p_name);
+				}
+				if(r.mode == null || r.mode == 0){
+					data.put("mode", "900");
+				}else{
+					data.put("mode", r.mode+"");
+				}
+				data.put("sn", r.serialNumber);
+				if(r.whiteList != null){
+					String[] wList = r.whiteList.split(",");
+					if(wList.length > 0){
+						JSONArray d = initResultJSONArray();
+						for(String s : wList){
+							JSONObject wl = initResultJSON();
+							if(!s.equals(":")){
+							String[] wll = s.split(":");
+							if(wll !=null && wll.length==2){
+								wl.put(wll[0], wll[1]);
+								d.add(wl);
+							}
+						}
+						}
+						data.put("whiteList", d);
+					}
+				}
+				List<TimeInterval> tis = TimeInterval.find("rWatch=?", r).fetch();
+				JSONArray datalist = initResultJSONArray();	
+				for (TimeInterval ti:tis) {
+					JSONObject t_data = initResultJSON();
+					t_data.put("on", ti.on+"");
+					t_data.put("startTime", ti.startTime);
+					t_data.put("endTime", ti.endTime);
+					t_data.put("interval", ti.interval+"");
+					t_data.put("type", ti.type+"");
+					datalist.add(t_data);
+				}
+				
+				data.put("time_interval", datalist);
+		results.put("list", data);
+		results.put("timestamp",new Date().getTime()+"");
+		renderSuccess(results);
 	}
 
 	/**
@@ -1030,7 +1262,7 @@ public class Master extends Controller {
 		}
 		int begin = 0;
 		if(num == null){
-			num = 100;
+			num = 1;
 		}
 		num = num > 100? 100:num;
 		if(page != null && page > 1){
@@ -1049,13 +1281,13 @@ public class Master extends Controller {
 			}
 			
 			if(startTimeDate != null && endTimeDate != null){
-				locations = Location.find("rwatch_id=? and (receivedTime>? and receivedTime<?)", rId, startTimeDate, endTimeDate).fetch(begin, num);
+				locations = Location.find("rwatch_id=? and (receivedTime>? and receivedTime<?) order by id desc", rId, startTimeDate, endTimeDate).fetch(begin, num);
 			}else if(startTimeDate != null && endTimeDate == null){
-				locations = Location.find("rwatch_id=? and receivedTime>?", rId, startTimeDate).fetch(begin, num);
+				locations = Location.find("rwatch_id=? and receivedTime>?  order by id desc", rId, startTimeDate).fetch(begin, num);
 			}else if(startTimeDate == null && endTimeDate != null){
-				locations = Location.find("rwatch_id=? and receivedTime<?", rId, endTimeDate).fetch(begin, num);
+				locations = Location.find("rwatch_id=? and receivedTime<?  order by id desc", rId, endTimeDate).fetch(begin, num);
 			}else if(startTimeDate == null && endTimeDate == null){
-				locations = Location.find("rwatch_id=?", rId).fetch(begin, num);
+				locations = Location.find("rwatch_id=?  order by id desc", rId).fetch(begin, num);
 			}
 			
 		} catch (Exception e) {
@@ -1069,6 +1301,63 @@ public class Master extends Controller {
 		
 		if (!locations.isEmpty()) {
 			for(Location l : locations){
+				if(	(new BigDecimal(l.latitude).compareTo(new BigDecimal(0.0))!=0 && 
+						new BigDecimal(l.longitude).compareTo(new BigDecimal(0.0))!=0 && 
+						new BigDecimal(l.cell_latitude).compareTo(new BigDecimal(0.0))!=0 && 
+						new BigDecimal(l.cell_longitude).compareTo(new BigDecimal(0.0))!=0)){
+					JSONObject data = initResultJSON();
+					data.put("id", l.id);
+					data.put("rwatchId", l.rwatch.id);
+					data.put("dateTime", l.dateTime);
+					data.put("latitude", l.latitude);
+					data.put("longitude", l.longitude);
+					data.put("cell_latitude", l.cell_latitude);
+					data.put("cell_longitude", l.cell_longitude);;
+					data.put("speed", l.speed);
+					data.put("direction", l.direction);
+					data.put("dateTime", l.dateTime);
+					data.put("status", l.status);
+					data.put("latitudeFlag", l.latitudeFlag);
+					data.put("longitudeFlag", l.longitudeFlag);
+					data.put("waring", l.valid);
+					data.put("sDate", (l.receivedTime+"").replace(".0", ""));
+					datalist.add(data);
+				}
+			}
+		}
+		results.put("list", datalist);
+		renderSuccess(results);
+	}
+	
+	/**
+	 * 即时定位
+	 * 
+	 * @param rId
+	 * @param z
+	 */
+	public static void getInstantPosition(@Required Long rId, @Required String z) {
+		
+		// 参数验证
+		if (Validation.hasErrors()) {
+			renderFail("error_parameter_required");
+		}
+		
+		Session s = sessionCache.get();
+		if(s == null){
+			renderFail("error_session_expired");
+		}
+		RWatch r = RWatch.find("id=? and c_id=?", rId, s.c.id).first();
+		if(r == null){
+			renderFail("error_rwatch_not_exist");
+		}
+		Long now = new Date().getTime();
+		List<Location> locations = Location.find("rwatch_id=?  order by id desc", rId).fetch(10);
+		
+		JSONObject results = initResultJSON();
+		for(Location l : locations){
+			if(now - l.receivedTime.getTime() < 180000 && 
+					((new BigDecimal(l.latitude).compareTo(new BigDecimal(0.0))!=0 && new BigDecimal(l.longitude).compareTo(new BigDecimal(0.0))!=0)
+					|| (new BigDecimal(l.cell_latitude).compareTo(new BigDecimal(0.0))!=0 && new BigDecimal(l.cell_longitude).compareTo(new BigDecimal(0.0))!=0))){
 				JSONObject data = initResultJSON();
 				data.put("id", l.id);
 				data.put("rwatchId", l.rwatch.id);
@@ -1085,13 +1374,101 @@ public class Master extends Controller {
 				data.put("longitudeFlag", l.longitudeFlag);
 				data.put("waring", l.valid);
 				data.put("sDate", (l.receivedTime+"").replace(".0", ""));
-				datalist.add(data);
+				results.put("position", data);
 			}
+		}
+		renderSuccess(results);
+	}
+	
+
+	public static void setInterval(@Required String startTime,@Required String endTime,@Required Integer interval, Integer on, Integer type, @Required Long rId, @Required String z) {
+		
+		// ....
+		if (Validation.hasErrors()) {
+			renderFail("error_parameter_required");
+		}
+		
+		Session s = sessionCache.get();
+		if(s == null){
+			renderFail("error_session_expired");
+		}
+		if(startTime.length() != 4 || Integer.parseInt(startTime) > 2359 || Integer.parseInt(startTime) < 0){
+			renderFail("error_starttime");
+		}
+		if(endTime.length() != 4 || Integer.parseInt(endTime) > 2359 || Integer.parseInt(endTime) < 0){
+			renderFail("error_endtime");
+		}
+		if(interval < 1){
+			renderFail("error_interval_zero");
+		}
+		RWatch r = RWatch.find("id=? and c_id=?", rId, s.c.id).first();
+		if(r == null){
+			renderFail("error_rwatch_not_exist");
+		}
+		if(type == null){
+			Object t = JPA.em().createNativeQuery("select max(type) from time_interval where rWatch_id = "+rId).getSingleResult();
+			if(t == null){
+				type = 1;
+			}else{
+				type = Integer.parseInt(t.toString())+1;
+			}
+		}
+		TimeInterval ti = TimeInterval.find("type=? and rWatch_id=?", type, r.id).first();
+		
+		if(ti == null){
+			ti = new TimeInterval();
+			ti.dateTime = new Date();
+			ti.endTime = endTime;
+			ti.startTime = startTime;
+			ti.type = type;
+			ti.interval = interval;
+			if(on != null)ti.on = on;
+			else ti.on = 1;
+			ti.rWatch = r;
+		}else{
+			if(startTime != null)ti.startTime = startTime;
+			if(endTime != null)ti.endTime = endTime;
+			if(interval != null)ti.interval = interval;
+			if(on != null)ti.on = on;
+			if(type != null)ti.type = type;
+		}
+		ti._save();
+		
+		renderSuccess(initResultJSON());
+	}
+	
+	public static void getInterval(@Required Long rId, @Required String z) {
+		
+		// ....
+		if (Validation.hasErrors()) {
+			renderFail("error_parameter_required");
+		}
+		
+		Session s = sessionCache.get();
+		if(s == null){
+			renderFail("error_session_expired");
+		}
+		RWatch r = RWatch.find("id=? and c_id=?", rId, s.c.id).first();
+		if(r == null){
+			renderFail("error_rwatch_not_exist");
+		}
+		List<TimeInterval> tis = TimeInterval.find("rWatch=?", r).fetch();
+		
+		JSONObject results = initResultJSON();
+		JSONArray datalist = initResultJSONArray();
+		results.put("rId",rId);
+		for (TimeInterval ti:tis) {
+			JSONObject data = initResultJSON();
+			data.put("on", ti.on+"");
+			data.put("startTime", ti.startTime);
+			data.put("endTime", ti.endTime);
+			data.put("interval", ti.interval+"");
+			data.put("type", ti.type+"");
+			datalist.add(data);
 		}
 		results.put("list", datalist);
 		renderSuccess(results);
 	}
-	
 	/**
 	 * 重置密码
 	 * 
@@ -1223,6 +1600,7 @@ public class Master extends Controller {
 		if(s.c.id != rWatch.c.id)renderFail("error_not_owner");
 		rWatch.c = null;
 		rWatch.save();
+		rWatch._delete();
 		JSONObject results = initResultJSON();
 		renderSuccess(results);
 	}
@@ -1258,17 +1636,19 @@ public class Master extends Controller {
 			renderFail("error_rwatch_max");
 		}
 
-		try {
-			boolean s = SendSMS.sendMsg(new String[]{w_number}, Play.ctxPath+"bindingWatch?sn="+sn+"&m_number="+m_number+"&w_number="+w_number);
-			if(!s){
-				play.Logger.error("webBindingWatch: result="+s+" PNumber="+m_number+" sn="+sn);
-				renderText("验证码获取失败请稍后再试");
-			}
-		} catch (Exception e) {
-			play.Logger.error("webBindingWatch: PNumber="+m_number+" sn="+sn);
-			play.Logger.error(e.getMessage());
-			renderFail("error_unknown_command");
-		}
+//		try {
+//			boolean s = SendSMS.sendMsg(new String[]{w_number}, Play.configuration.getProperty("binding.path")+"?sn="+sn+"&m_number="+m_number+"&w_number="+w_number);
+//			if(!s){
+//				play.Logger.error("webBindingWatch: result="+s+" PNumber="+m_number+" sn="+sn);
+//				renderText("............");
+//			}
+//		} catch (Exception e) {
+//			play.Logger.error("webBindingWatch: PNumber="+m_number+" sn="+sn);
+//			play.Logger.error(e.getMessage());
+//			renderFail("error_unknown_command");
+//		}
+		
+		addRWatch(m_number, w_number, sn);
 		
 		renderSuccess(results);
 	}

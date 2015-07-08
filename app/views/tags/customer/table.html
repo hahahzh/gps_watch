@@ -53,7 +53,7 @@
                     }%
                 %{ } else { }%
                     %{ if(i == 0) { }%
-                        ${object[field]?.toString()?.escape()?.raw() ?: ''}<!-- <a href="@{show(object._key())}">${object[field]?.toString()?.escape()?.raw() ?: '(no value)'}</a> -->
+                        <a href="@{show(object._key())}">${object[field]?.toString()?.escape()?.raw() ?: '(no value)'}</a>
                     %{ } else { }%
                     
                     	%{ if(field == 'production') { }%

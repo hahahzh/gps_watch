@@ -21,7 +21,7 @@ public class BSLocation extends Model{
 	
 	public int lac;
 	public int cellid;
-	String signal;
+	public String signal;
 	
 	/**
 	 * 定位器纬度，格式为DD.FFFFFF

@@ -13,9 +13,9 @@ import javax.persistence.Table;
 import play.data.validation.Required;
 import play.db.jpa.Model;
 
-@Table(name="electronic_fence")
+@Table(name="time_interval")
 @Entity
-public class ElectronicFence extends Model{
+public class TimeInterval extends Model{
 	/**
 	 * 定位器
 	 */
@@ -26,27 +26,21 @@ public class ElectronicFence extends Model{
 	 */
 	@Column(name="switch_on")
 	public Integer on;
-	/**
-	 * 定位器纬度，格式为DD.FFFFFF
-	 */
-	public double lat;
-	/**
-	 * 定位器经度,格式为DDD.FFFFFF
-	 */
-	public double lon;
-	
-	/**
-	 * 半径
-	 */
-	public double radius;
-	
+
 	/**
 	 * 最后修改日期
 	 */
 	public Date dateTime;
 	
-	@Required
-	public Integer num;
+	public String startTime;
+	
+	public String endTime;
+	
+	@Column(name="t_interval")
+	public Integer interval;
+	
+	// 0 免打扰 1 时段1 2 时段2 .。。
+	public Integer type;
 	
 	public String toString() {
 		return "1";

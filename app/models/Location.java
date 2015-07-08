@@ -14,7 +14,7 @@ import play.db.jpa.Model;
 @Table(name="locations")
 public class Location extends Model{
 
-	@ManyToOne(cascade = CascadeType.ALL, optional = false)
+	@ManyToOne(cascade = CascadeType.REMOVE, optional = false)
 	public RWatch rwatch;
 	/**
 	 * 定位器纬度，格式为DD.FFFFFF

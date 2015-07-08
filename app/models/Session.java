@@ -21,7 +21,7 @@ import play.db.jpa.Model;
 @Entity
 public class Session extends Model {
 
-	@OneToOne(optional = false, cascade = { CascadeType.REFRESH},fetch=FetchType.EAGER) 
+	@OneToOne(optional = false, cascade = { CascadeType.REMOVE}) 
 	@JoinColumn(name = "customer_id", unique = true)
 	public Customer c;
 	

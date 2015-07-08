@@ -58,11 +58,18 @@ public class RWatch extends Model {
 	@ManyToOne(optional = false, cascade = CascadeType.ALL)
 	public Production production;
 	
-	@Required
-	@ManyToOne(fetch=FetchType.LAZY,cascade=javax.persistence.CascadeType.REFRESH, optional = true)
+	// @Required
+	// @ManyToOne(fetch=FetchType.LAZY,cascade= CascadeType.REFRESH, optional = true)
+	@ManyToOne(cascade= CascadeType.REMOVE)
 	public Customer c;
+
+	public Boolean remind_open_close;
+
+	public Boolean remind_low_power;
 	
 	public String toString(){
-		return production.p_name;
+		if(nickname != null)return nickname;
+		else if(m_number != null) return m_number;
+		else return guardian_number1;
 	}
 }
