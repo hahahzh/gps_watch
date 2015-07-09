@@ -608,7 +608,48 @@ public class Master extends Controller {
 			r.mode = mode;
 		}
 		r._save();
+		
 		JSONObject results = initResultJSON();
+		JSONObject data = initResultJSON();
+		data.put("rId", r.id);
+		data.put("imei", r.imei);
+		data.put("m_number", r.m_number);
+		data.put("nickname", r.nickname);
+		data.put("guardian_number1", r.guardian_number1);
+		data.put("name_number1", r.name_number1);
+		data.put("guardian_number2", r.guardian_number2);
+		data.put("name_number2", r.name_number2);
+		data.put("guardian_number3", r.guardian_number3);
+		data.put("name_number3", r.name_number3);
+		data.put("guardian_number4", r.guardian_number4);
+		data.put("name_number4", r.name_number4);
+		data.put("bindDate", DateUtil.reverseDate(r.bindDate,3));
+		if(r.production != null){
+			data.put("production", r.production.p_name);
+		}
+		if(r.mode == null || r.mode == 0){
+			data.put("mode", "180");
+		}else{
+			data.put("mode", r.mode+"");
+		}
+		data.put("sn", r.serialNumber);
+		if(r.whiteList != null){
+			String[] wList = r.whiteList.split(",");
+			if(wList.length > 0){
+				JSONArray d = initResultJSONArray();
+				for(String s : wList){
+					JSONObject wl = initResultJSON();
+					String[] wll = s.split(":");
+					if(wll.length==2){
+						wl.put(wll[1], wll[0]);
+						d.add(wl);
+					}
+				}
+				data.put("whiteList", d);
+			}
+		}
+		results.put("list", data);
+		results.put("timestamp",new Date().getTime()+"");
 		renderSuccess(results);
 	}
 	

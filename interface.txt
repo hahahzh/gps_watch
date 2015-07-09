@@ -291,3 +291,33 @@ http://127.0.0.1:9000/c/getInterval?rId=51&z=187f4816-9742-4648-b367-050fc546b6f
 返回
 {"state":"1","results":{"rId":51,"list":[{"on":0,"startTime":"1101","endTime":"2159","interval":30,"type":1},{"on":1,"startTime":"1001","endTime":"2259","interval":30,"type":2},{"on":1,"startTime":"1101","endTime":"2259","interval":30,"type":3},{"on":0,"startTime":"1101","endTime":"2259","interval":30,"type":0}]}}
 获得参数定义同接口25
+
+26 设置白名单接口
+http://127.0.0.1:9000/c/watchInfo_new?rId=51&z=187f4816-9742-4648-b367-050fc546b6fc&whiteList=213123:妈妈
+sn: serial number
+rId:手表ID
+z
+whiteList:白名单
+说明：只传sn或者传rId和z，识别定位手表
+
+27 获取白名单接口
+http://127.0.0.1:9000/c/getRWatchInfo_new?sn=4654665115
+sn: serial number
+
+返回
+{"state":"1","results":{"list":{"rId":279,"m_number":"13991098040","nickname":"","guardian_number1":"13488292399","guardian_number2":"13892212632","guardian_number3":"13488292399","guardian_number4":"13892212632","bindDate":"2015/07/07 10:26:18","mode":"180","sn":"863137001938998","whiteList":[]},"timestamp":"1436457085762"}}
+
+28 删除白名单
+http://127.0.0.1:9000/c/delWhiteList?rId=51&z=187f4816-9742-4648-b367-050fc546b6fc&whiteList=213123:妈妈
+sn: serial number
+rId:手表ID
+z
+whiteList:白名单
+说明：只传sn或者传rId和z，识别定位手表
+
+29 即时定位
+http://127.0.0.1:9000/c/slam?rId=279&z=14a9d40c-ffe7-4cbc-9db5-68a2d101b286
+
+(必须)rId:手表ID
+z
+说明：返回3分钟以内最新一条有效定位信息
