@@ -568,13 +568,13 @@ public class Master extends Controller {
 		if (!StringUtil.isEmpty(guardian_number1)){
 			r.guardian_number1 = guardian_number1;
 		}
-		if (!StringUtil.isEmpty(guardian_number2)){
+		if (guardian_number2 != null){
 			r.guardian_number2 = guardian_number2;
 		}
-		if (!StringUtil.isEmpty(guardian_number3)){
+		if (guardian_number3 != null){
 			r.guardian_number3 = guardian_number3;
 		}
-		if (!StringUtil.isEmpty(guardian_number4)){
+		if (guardian_number4 != null){
 			r.guardian_number4 = guardian_number4;
 		}
 		if (!StringUtil.isEmpty(name_number1)){
@@ -786,7 +786,7 @@ public class Master extends Controller {
 							JSONObject wl = initResultJSON();
 							if(!s.equals(":")){
 								String[] wll = s.split(":");
-            					if(wll != null && wll.length!=2){
+            					if(wll != null && wll.length==2){
             						wl.put(wll[0], wll[1]);
             						d.add(wl);
             					}
