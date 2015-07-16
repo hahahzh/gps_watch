@@ -843,7 +843,7 @@ public class Master extends Controller {
 					subdata.put("on", ti.on+"");
 					subdata.put("startTime", ti.startTime);
 					subdata.put("endTime", ti.endTime);
-					subdata.put("interval", ti.interval+"");
+					subdata.put("interval", (ti.interval*60)+"");
 					subdata.put("type", ti.type+"");
 					datalist.add(subdata);
 				}
@@ -1265,7 +1265,7 @@ public class Master extends Controller {
 					t_data.put("on", ti.on+"");
 					t_data.put("startTime", ti.startTime);
 					t_data.put("endTime", ti.endTime);
-					t_data.put("interval", ti.interval+"");
+					t_data.put("interval", (ti.interval*60)+"");
 					t_data.put("type", ti.type+"");
 					datalist.add(t_data);
 				}
@@ -1502,7 +1502,7 @@ public class Master extends Controller {
 			data.put("on", ti.on+"");
 			data.put("startTime", ti.startTime);
 			data.put("endTime", ti.endTime);
-			data.put("interval", ti.interval+"");
+			data.put("interval", (ti.interval*60)+"");
 			data.put("type", ti.type+"");
 			datalist.add(data);
 		}
