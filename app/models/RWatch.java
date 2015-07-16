@@ -55,12 +55,12 @@ public class RWatch extends Model {
 	public Integer mode;
 	
 	//M28 M26
-	@ManyToOne(optional = false, cascade = CascadeType.ALL)
+	@ManyToOne(cascade= CascadeType.REFRESH, optional = true)
 	public Production production;
 	
 	// @Required
 	// @ManyToOne(fetch=FetchType.LAZY,cascade= CascadeType.REFRESH, optional = true)
-	@ManyToOne(cascade= CascadeType.REMOVE)
+	@ManyToOne(cascade= CascadeType.REFRESH, optional = true)
 	public Customer c;
 
 	public Boolean remind_open_close;
